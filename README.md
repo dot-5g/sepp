@@ -1,6 +1,6 @@
 # Security Edge Protection Proxy (SEPP)
 
-An open source implementation of the Security Edge Protection Proxy (SEPP).
+An open source implementation of the 5G Security Edge Protection Proxy (SEPP).
 
 ## Reference
 
