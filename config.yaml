@@ -1,7 +1,8 @@
 SEPP:
   FQDN: "1.2.3.5"
+  Host: "127.0.0.1"
   Port: 1234
   TLS:
-    Enabled: true
-    Cert: "/etc/sepp/certs/sepp.crt"
-    Key: "/etc/sepp/certs/sepp.key"
+    Cert: "/etc/sepp/certs/server.crt"
+    Key: "/etc/sepp/certs/server.key"
+    CA: "/etc/sepp/certs/ca.crt"
