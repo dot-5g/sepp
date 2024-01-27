@@ -1,10 +1,9 @@
 package n32
 
 import (
+	"encoding/json"
 	"net/http"
 	"slices"
-
-	"github.com/labstack/echo/v4"
 )
 
 type SecurityCapability string
@@ -22,24 +21,28 @@ type SecNegotiateRspData struct {
 	SelectedSecCapability SecurityCapability
 }
 
-func (n32c *N32C) HandlePostExchangeCapability(c echo.Context) error {
+func (n32c *N32C) HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request) {
 	reqData := new(SecNegotiateReqData)
 
-	if err := c.Bind(reqData); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
+	if err := json.NewDecoder(r.Body).Decode(reqData); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
 	}
 
 	if reqData.Sender == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "Sender is required")
+		http.Error(w, "Sender is required", http.StatusBadRequest)
+		return
 	}
 
 	if len(reqData.SupportedSecCapabilityList) == 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, "SupportedSecCapabilityList is required")
+		http.Error(w, "SupportedSecCapabilityList is required", http.StatusBadRequest)
+		return
 	}
 
 	containsTLS := slices.Contains(reqData.SupportedSecCapabilityList, TLS)
 	if !containsTLS {
-		return echo.NewHTTPError(http.StatusBadRequest, "Bad SecurityCapability - Only TLS is supported")
+		http.Error(w, "Bad SecurityCapability - Only TLS is supported", http.StatusBadRequest)
+		return
 	}
 
 	rspData := SecNegotiateRspData{
@@ -47,5 +50,11 @@ func (n32c *N32C) HandlePostExchangeCapability(c echo.Context) error {
 		SelectedSecCapability: TLS,
 	}
 
-	return c.JSON(http.StatusOK, rspData)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(rspData)
+	if err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
