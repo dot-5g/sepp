@@ -16,20 +16,18 @@ import (
 
 var configFilePath string
 
-const Port = "1323"
-
 func init() {
 	flag.StringVar(&configFilePath, "config", "config.yaml", "Path to the config file")
 }
 
 func main() {
 	flag.Parse()
-	conf, err := loadConfiguration(configFilePath)
+	config, err := loadConfiguration(configFilePath)
 	if err != nil {
 		log.Fatalf("Failed to read config file: %s", err)
 	}
-	server := initializeServer(conf)
-	startServer(server, conf)
+	server := initializeServer(config)
+	startServer(server, config)
 }
 
 func loadConfiguration(filePath string) (*config.Config, error) {
@@ -51,10 +49,10 @@ func initializeServer(conf *config.Config) *echo.Echo {
 	return e
 }
 
-func startServer(e *echo.Echo, conf *config.Config) {
-	address := ":" + Port
-	if conf.SEPP.TLS.Enabled {
-		if err := e.StartTLS(address, conf.SEPP.TLS.Cert, conf.SEPP.TLS.Key); err != http.ErrServerClosed {
+func startServer(e *echo.Echo, config *config.Config) {
+	address := ":" + config.SEPP.Port
+	if config.SEPP.TLS.Enabled {
+		if err := e.StartTLS(address, config.SEPP.TLS.Cert, config.SEPP.TLS.Key); err != http.ErrServerClosed {
 			e.Logger.Fatal(err)
 		}
 	} else {

@@ -10,6 +10,7 @@ import (
 type Config struct {
 	SEPP struct {
 		FQDN string `yaml:"FQDN"`
+		Port string `yaml:"Port"`
 		TLS  struct {
 			Enabled bool   `yaml:"Enabled"`
 			Cert    string `yaml:"Cert"`
