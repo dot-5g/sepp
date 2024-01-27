@@ -1,8 +1,20 @@
-SEPP:
-  FQDN: "1.2.3.5"
-  Host: "127.0.0.1"
-  Port: 1234
-  TLS:
-    Cert: "/etc/sepp/certs/server.crt"
-    Key: "/etc/sepp/certs/server.key"
-    CA: "/etc/sepp/certs/ca.crt"
+sepp:
+  local:
+    n32:
+      fqdn: "local-sepp.example.com"
+      host: "localhost"
+      port: "1234"
+      tls:
+        cert: "/etc/sepp/certs/server.crt"
+        key: "/etc/sepp/certs/server.key"
+        ca: "/etc/sepp/certs/ca.crt"
+    sbi:
+      fqdn: "local-sbi.example.com"
+      host: "localhost"
+      port: "1235"
+      tls:
+        cert: "/etc/sepp/certs/server.crt"
+        key: "/etc/sepp/certs/server.key"
+        ca: "/etc/sepp/certs/ca.crt"
+  remote:
+    url: "https://remote-sepp.example.com"
