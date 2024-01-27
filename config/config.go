@@ -10,6 +10,12 @@ import (
 type Config struct {
 	SEPP struct {
 		FQDN string `yaml:"FQDN"`
+		Port string `yaml:"Port"`
+		TLS  struct {
+			Enabled bool   `yaml:"Enabled"`
+			Cert    string `yaml:"Cert"`
+			Key     string `yaml:"Key"`
+		} `yaml:"TLS"`
 	} `yaml:"SEPP"`
 }
 
@@ -28,6 +34,10 @@ func ReadConfig(configPath string) (*Config, error) {
 
 	if config.SEPP.FQDN == "" {
 		return nil, fmt.Errorf("FQDN is required")
+	}
+
+	if config.SEPP.TLS.Enabled && config.SEPP.TLS.Cert == "" && config.SEPP.TLS.Key == "" {
+		return nil, fmt.Errorf("TLS.Cert and TLS.Key are required")
 	}
 
 	return &config, nil
