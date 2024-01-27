@@ -1,2 +1,6 @@
 SEPP:
   FQDN: "1.2.3.5"
+  TLS:
+    Enabled: true
+    Cert: "/etc/sepp/certs/sepp.crt"
+    Key: "/etc/sepp/certs/sepp.key"
