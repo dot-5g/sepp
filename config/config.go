@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
 )
@@ -40,7 +39,7 @@ type Config struct {
 func ReadConfig(reader io.Reader) (*Config, error) {
 	var config Config
 
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config data: %w", err)
 	}

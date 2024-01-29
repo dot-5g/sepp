@@ -1,6 +1,6 @@
 # Security Edge Protection Proxy (SEPP)
 
-> :construction:The project is under development. :construction:
+> :construction: This project is under development. :construction:
 
 An open source implementation of the 5G Security Edge Protection Proxy (SEPP).
 
