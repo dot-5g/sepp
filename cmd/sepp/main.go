@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/dot-5g/sepp/config"
 
-	"github.com/dot-5g/sepp/internal/server"
+	"github.com/dot-5g/sepp/internal/n32"
+	"github.com/dot-5g/sepp/internal/sbi"
 
 	"log"
 )
@@ -18,7 +20,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to read config file: %s", err)
 	}
-	server.Start(config)
+
+	go func() {
+		sbi.StartServer(config)
+	}()
+
+	n32.StartServer(config)
 }
 
 func init() {
@@ -26,9 +33,16 @@ func init() {
 }
 
 func loadConfiguration(filePath string) (*config.Config, error) {
-	conf, err := config.ReadConfig(filePath)
+	configFile, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
+	defer configFile.Close()
+
+	conf, err := config.ReadConfig(configFile)
+	if err != nil {
+		return nil, err
+	}
+
 	return conf, nil
 }

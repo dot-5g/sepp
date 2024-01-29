@@ -1,4 +1,4 @@
-package server
+package n32
 
 import (
 	"crypto/tls"
@@ -8,8 +8,13 @@ import (
 	"os"
 
 	"github.com/dot-5g/sepp/config"
-	"github.com/dot-5g/sepp/internal/n32"
 )
+
+type FQDN string
+
+type N32C struct {
+	FQDN FQDN
+}
 
 func loadClientCAs(caCertPath string) (*x509.CertPool, error) {
 	caCert, err := os.ReadFile(caCertPath)
@@ -30,11 +35,11 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func Start(conf *config.Config) {
-	n32c := n32.N32C{FQDN: n32.FQDN(conf.SEPP.FQDN)}
+func StartServer(config *config.Config) {
+	n32c := N32C{FQDN: FQDN(config.SEPP.Local.N32.FQDN)}
 	http.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(n32c.HandlePostExchangeCapability))
-	address := conf.SEPP.Host + ":" + conf.SEPP.Port
-	clientCAPool, err := loadClientCAs(conf.SEPP.TLS.CA)
+	address := config.SEPP.Local.N32.Host + ":" + config.SEPP.Local.N32.Port
+	clientCAPool, err := loadClientCAs(config.SEPP.Local.N32.TLS.CA)
 	if err != nil {
 		log.Fatalf("failed to load client CA certificate: %s", err)
 	}
@@ -46,8 +51,8 @@ func Start(conf *config.Config) {
 		Addr:      address,
 		TLSConfig: tlsConfig,
 	}
-	log.Printf("starting server on %s", address)
-	if err := server.ListenAndServeTLS(conf.SEPP.TLS.Cert, conf.SEPP.TLS.Key); err != http.ErrServerClosed {
+	log.Printf("starting N32 server on %s", address)
+	if err := server.ListenAndServeTLS(config.SEPP.Local.N32.TLS.Cert, config.SEPP.Local.N32.TLS.Key); err != http.ErrServerClosed {
 		log.Fatalf("failed to start server: %s", err)
 	}
 }

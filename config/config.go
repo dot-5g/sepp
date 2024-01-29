@@ -2,56 +2,88 @@ package config
 
 import (
 	"fmt"
-	"os"
+	"io"
 
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
 	SEPP struct {
-		FQDN string `yaml:"FQDN"`
-		Host string `yaml:"Host"`
-		Port string `yaml:"Port"`
-		TLS  struct {
-			Cert string `yaml:"Cert"`
-			Key  string `yaml:"Key"`
-			CA   string `yaml:"CA"`
-		} `yaml:"TLS"`
-	} `yaml:"SEPP"`
-	NRF struct {
-		FQDN string `yaml:"FQDN"`
-		Port string `yaml:"Port"`
-	}
+		Local struct {
+			N32 struct {
+				FQDN string `yaml:"fqdn"`
+				Host string `yaml:"host"`
+				Port string `yaml:"port"`
+				TLS  struct {
+					Cert string `yaml:"cert"`
+					Key  string `yaml:"key"`
+					CA   string `yaml:"ca"`
+				} `yaml:"tls"`
+			} `yaml:"n32"`
+			SBI struct {
+				Host string `yaml:"host"`
+				Port string `yaml:"port"`
+				TLS  struct {
+					Cert string `yaml:"cert"`
+					Key  string `yaml:"key"`
+					CA   string `yaml:"ca"`
+				} `yaml:"tls"`
+			} `yaml:"sbi"`
+		} `yaml:"local"`
+		Remote struct {
+			URL string `yaml:"url"`
+		} `yaml:"remote"`
+	} `yaml:"sepp"`
 }
 
-func ReadConfig(configPath string) (*Config, error) {
+func ReadConfig(reader io.Reader) (*Config, error) {
 	var config Config
 
-	data, err := os.ReadFile(configPath)
+	data, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read config data: %w", err)
 	}
 
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	if err := validateConfig(&config); err != nil {
 		return nil, err
 	}
 
-	if config.SEPP.FQDN == "" {
-		return nil, fmt.Errorf("FQDN is required")
-	}
-
-	if config.SEPP.TLS.Cert == "" {
-		return nil, fmt.Errorf("SEPP.TLS.Cert is required")
-	}
-
-	if config.SEPP.TLS.Key == "" {
-		return nil, fmt.Errorf("SEPP.TLS.Key is required")
-	}
-
-	if config.SEPP.TLS.CA == "" {
-		return nil, fmt.Errorf("SEPP.TLS.CACert is required")
-	}
-
 	return &config, nil
+}
+
+func validateConfig(config *Config) error {
+	if config.SEPP.Local.N32.FQDN == "" {
+		return fmt.Errorf("missing FQDN")
+	}
+
+	if config.SEPP.Local.N32.Host == "" {
+		return fmt.Errorf("missing host")
+	}
+
+	if config.SEPP.Local.N32.Port == "" {
+		return fmt.Errorf("missing port")
+	}
+
+	if config.SEPP.Local.N32.TLS.Cert == "" {
+		return fmt.Errorf("missing TLS cert")
+	}
+
+	if config.SEPP.Local.N32.TLS.Key == "" {
+		return fmt.Errorf("missing TLS key")
+	}
+
+	if config.SEPP.Local.N32.TLS.CA == "" {
+		return fmt.Errorf("missing TLS CA")
+	}
+
+	if config.SEPP.Remote.URL == "" {
+		return fmt.Errorf("missing remote URL")
+	}
+
+	return nil
 }
