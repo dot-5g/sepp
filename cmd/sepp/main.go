@@ -16,16 +16,16 @@ var configFilePath string
 
 func main() {
 	flag.Parse()
-	conf, err := loadConfiguration(configFilePath)
+	config, err := loadConfiguration(configFilePath)
 	if err != nil {
 		log.Fatalf("Failed to read config file: %s", err)
 	}
 
 	go func() {
-		sbi.StartServer(conf)
+		sbi.StartServer(config)
 	}()
 
-	n32.StartServer(conf)
+	n32.StartServer(config)
 }
 
 func init() {
@@ -33,13 +33,13 @@ func init() {
 }
 
 func loadConfiguration(filePath string) (*config.Config, error) {
-	file, err := os.Open(filePath)
+	configFile, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer configFile.Close()
 
-	conf, err := config.ReadConfig(file)
+	conf, err := config.ReadConfig(configFile)
 	if err != nil {
 		return nil, err
 	}

@@ -10,6 +10,12 @@ import (
 	"github.com/dot-5g/sepp/config"
 )
 
+type FQDN string
+
+type N32C struct {
+	FQDN FQDN
+}
+
 func loadClientCAs(caCertPath string) (*x509.CertPool, error) {
 	caCert, err := os.ReadFile(caCertPath)
 	if err != nil {
