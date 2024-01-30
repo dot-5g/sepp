@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	"github.com/dot-5g/sepp/config"
 
@@ -21,11 +22,39 @@ func main() {
 		log.Fatalf("Failed to read config file: %s", err)
 	}
 
-	go func() {
-		sbi.StartServer(config)
-	}()
+	address := config.SEPP.Local.N32.Host + ":" + config.SEPP.Local.N32.Port
+	caCertPath := config.SEPP.Local.N32.TLS.CA
+	serverCertPath := config.SEPP.Local.N32.TLS.Cert
+	serverKeyPath := config.SEPP.Local.N32.TLS.Key
+	fqdn := config.SEPP.Local.N32.FQDN
 
-	n32.StartServer(config)
+	go n32.StartServer(address, serverCertPath, serverKeyPath, caCertPath, fqdn)
+
+	seppClient := n32.NewClient(config.SEPP.Local.N32.TLS.Cert, config.SEPP.Local.N32.TLS.Key, config.SEPP.Local.N32.TLS.CA)
+
+	remoteURL := config.SEPP.Remote.URL
+	securityCapabilities := []n32.SecurityCapability{n32.TLS}
+
+	for {
+		cap, err := seppClient.POSTExchangeCapability(remoteURL, securityCapabilities)
+		if err != nil {
+			log.Printf("failed to exchange capability: %s", err)
+			time.Sleep(30 * time.Second) // Retry after some time
+			continue
+		}
+
+		if cap.SelectedSecCapability == n32.TLS {
+			log.Println("security exchange successful, starting SBI server...")
+			sbi.StartServer(config)
+			break
+		} else {
+			log.Printf("unsupported capability: %v", cap)
+			time.Sleep(30 * time.Second) // Retry after some time
+		}
+	}
+
+	// Keep the main goroutine running
+	select {}
 }
 
 func init() {
