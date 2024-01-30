@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,7 +15,7 @@ type Client struct {
 	httpClient *http.Client
 }
 
-func NewClient(certPath, keyPath, caCertPath string) *Client {
+func NewClient(certPath string, keyPath string, caCertPath string) *Client {
 	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		log.Fatalf("Failed to load client certificate: %v", err)
@@ -41,18 +42,15 @@ func NewClient(certPath, keyPath, caCertPath string) *Client {
 	}
 }
 
-func (c *Client) POSTExchangeCapability(remoteURL string, cap []SecurityCapability) (SecNegotiateRspData, error) {
+func (c *Client) POSTExchangeCapability(remoteURL string, secNegotiateReqData SecNegotiateReqData) (SecNegotiateRspData, error) {
 	secNegotiateRspData := SecNegotiateRspData{}
-
-	reqData := SecNegotiateReqData{
-		// Populate reqData fields
-	}
-	jsonData, err := json.Marshal(reqData)
+	jsonData, err := json.Marshal(secNegotiateReqData)
 	if err != nil {
 		return secNegotiateRspData, err
 	}
 
-	req, err := http.NewRequest("POST", remoteURL, bytes.NewBuffer(jsonData))
+	endpoint := remoteURL + "/n32c-handshake/v1/exchange-capability"
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return secNegotiateRspData, err
 	}
@@ -63,7 +61,9 @@ func (c *Client) POSTExchangeCapability(remoteURL string, cap []SecurityCapabili
 		return secNegotiateRspData, err
 	}
 	defer resp.Body.Close()
-
+	if resp.StatusCode != http.StatusOK {
+		return secNegotiateRspData, fmt.Errorf("unexpected response status: %s", resp.Status)
+	}
 	err = json.NewDecoder(resp.Body).Decode(&secNegotiateRspData)
 	if err != nil {
 		return secNegotiateRspData, err

@@ -6,6 +6,13 @@ An open source implementation of the 5G Security Edge Protection Proxy (SEPP) th
 
 ![SEPP](sepp.png)
 
+## Usage
+
+```bash
+go build cmd/sepp/main.go
+./main --config=config.yaml
+```
+
 ## Reference
 
 - [5G Public Land Mobile Network (PLMN) Interconnection](https://www.etsi.org/deliver/etsi_ts/129500_129599/129573/15.04.00_60/ts_129573v150400p.pdf)

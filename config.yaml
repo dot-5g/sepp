@@ -3,18 +3,22 @@ sepp:
     n32:
       fqdn: "local-sepp.example.com"
       host: "localhost"
-      port: "1234"
+      port: "1236"
       tls:
-        cert: "/etc/sepp/certs/server.crt"
-        key: "/etc/sepp/certs/server.key"
-        ca: "/etc/sepp/certs/ca.crt"
+        cert: "certs/n32Server.crt"
+        key: "certs/n32Server.key"
+        ca: "certs/ca.crt"
     sbi:
       fqdn: "local-sbi.example.com"
       host: "localhost"
-      port: "1235"
+      port: "1237"
       tls:
-        cert: "/etc/sepp/certs/server.crt"
-        key: "/etc/sepp/certs/server.key"
-        ca: "/etc/sepp/certs/ca.crt"
+        cert: "certs/sbiServer.crt"
+        key: "certs/sbiServer.key"
+        ca: "certs/ca.crt"
   remote:
-    url: "https://remote-sepp.example.com"
+    url: "https://127.0.0.1:1235"
+    tls:
+      cert: "certs/client.crt"
+      key: "certs/client.key"
+      ca: "certs/ca.crt"
