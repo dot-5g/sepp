@@ -19,7 +19,7 @@ jobs:
           go-version-file: "go.mod"
 
       - name: Build
-        run: go build cmd/sepp/main.go
+        run: go build cmd/sepp/sepp.go
 
   go-vet:
     runs-on: ubuntu-latest

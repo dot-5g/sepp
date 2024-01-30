@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -32,6 +33,11 @@ type Config struct {
 		} `yaml:"local"`
 		Remote struct {
 			URL string `yaml:"url"`
+			TLS struct {
+				Cert string `yaml:"cert"`
+				Key  string `yaml:"key"`
+				CA   string `yaml:"ca"`
+			} `yaml:"tls"`
 		} `yaml:"remote"`
 	} `yaml:"sepp"`
 }
@@ -81,9 +87,33 @@ func validateConfig(config *Config) error {
 		return fmt.Errorf("missing TLS CA")
 	}
 
-	if config.SEPP.Remote.URL == "" {
-		return fmt.Errorf("missing remote URL")
+	if config.SEPP.Remote.URL != "" {
+		if config.SEPP.Remote.TLS.Cert == "" {
+			return fmt.Errorf("missing remote TLS cert")
+		}
+
+		if config.SEPP.Remote.TLS.Key == "" {
+			return fmt.Errorf("missing remote TLS key")
+		}
+
+		if config.SEPP.Remote.TLS.CA == "" {
+			return fmt.Errorf("missing remote TLS CA")
+		}
+	}
+	return nil
+}
+
+func LoadConfiguration(filePath string) (*Config, error) {
+	configFile, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer configFile.Close()
+
+	conf, err := ReadConfig(configFile)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return conf, nil
 }

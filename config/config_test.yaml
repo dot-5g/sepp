@@ -18,3 +18,7 @@ sepp:
         ca: "/etc/sepp/certs/ca.crt"
   remote:
     url: "https://remote-sepp.example.com"
+    tls:
+      cert: "/etc/sepp/certs/server.crt"
+      key: "/etc/sepp/certs/server.key"
+      ca: "/etc/sepp/certs/ca.crt"

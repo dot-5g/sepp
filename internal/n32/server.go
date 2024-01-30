@@ -1,19 +1,19 @@
 package n32
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/dot-5g/sepp/config"
 )
 
 type FQDN string
 
 type N32C struct {
-	FQDN FQDN
+	FQDN         FQDN
+	Capabilities []SecurityCapability
 }
 
 func loadClientCAs(caCertPath string) (*x509.CertPool, error) {
@@ -35,11 +35,10 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func StartServer(config *config.Config) {
-	n32c := N32C{FQDN: FQDN(config.SEPP.Local.N32.FQDN)}
+func StartServer(ctx context.Context, address string, serverCertPath string, serverKeyPath string, caCertPath string, fqdn string) {
+	n32c := N32C{FQDN: FQDN(fqdn), Capabilities: []SecurityCapability{TLS}}
 	http.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(n32c.HandlePostExchangeCapability))
-	address := config.SEPP.Local.N32.Host + ":" + config.SEPP.Local.N32.Port
-	clientCAPool, err := loadClientCAs(config.SEPP.Local.N32.TLS.CA)
+	clientCAPool, err := loadClientCAs(caCertPath)
 	if err != nil {
 		log.Fatalf("failed to load client CA certificate: %s", err)
 	}
@@ -51,8 +50,17 @@ func StartServer(config *config.Config) {
 		Addr:      address,
 		TLSConfig: tlsConfig,
 	}
+
+	go func() {
+		<-ctx.Done()
+		if err := server.Shutdown(context.Background()); err != nil {
+			log.Printf("SBI server shutdown error: %v", err)
+		}
+	}()
+
 	log.Printf("starting N32 server on %s", address)
-	if err := server.ListenAndServeTLS(config.SEPP.Local.N32.TLS.Cert, config.SEPP.Local.N32.TLS.Key); err != http.ErrServerClosed {
+	if err := server.ListenAndServeTLS(serverCertPath, serverKeyPath); err != http.ErrServerClosed {
 		log.Fatalf("failed to start server: %s", err)
 	}
+	log.Println("N32 server stopped")
 }
