@@ -2,6 +2,7 @@ package n32
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -42,7 +43,7 @@ func NewClient(certPath string, keyPath string, caCertPath string) *Client {
 	}
 }
 
-func (c *Client) POSTExchangeCapability(remoteURL string, secNegotiateReqData SecNegotiateReqData) (SecNegotiateRspData, error) {
+func (c *Client) POSTExchangeCapability(ctx context.Context, remoteURL string, secNegotiateReqData SecNegotiateReqData) (SecNegotiateRspData, error) {
 	secNegotiateRspData := SecNegotiateRspData{}
 	jsonData, err := json.Marshal(secNegotiateReqData)
 	if err != nil {
@@ -50,7 +51,7 @@ func (c *Client) POSTExchangeCapability(remoteURL string, secNegotiateReqData Se
 	}
 
 	endpoint := remoteURL + "/n32c-handshake/v1/exchange-capability"
-	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return secNegotiateRspData, err
 	}

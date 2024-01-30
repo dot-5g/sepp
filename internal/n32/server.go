@@ -1,6 +1,7 @@
 package n32
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"log"
@@ -34,7 +35,7 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func StartServer(address string, serverCertPath string, serverKeyPath string, caCertPath string, fqdn string) {
+func StartServer(ctx context.Context, address string, serverCertPath string, serverKeyPath string, caCertPath string, fqdn string) {
 	n32c := N32C{FQDN: FQDN(fqdn), Capabilities: []SecurityCapability{TLS}}
 	http.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(n32c.HandlePostExchangeCapability))
 	clientCAPool, err := loadClientCAs(caCertPath)
@@ -49,8 +50,17 @@ func StartServer(address string, serverCertPath string, serverKeyPath string, ca
 		Addr:      address,
 		TLSConfig: tlsConfig,
 	}
+
+	go func() {
+		<-ctx.Done()
+		if err := server.Shutdown(context.Background()); err != nil {
+			log.Printf("SBI server shutdown error: %v", err)
+		}
+	}()
+
 	log.Printf("starting N32 server on %s", address)
 	if err := server.ListenAndServeTLS(serverCertPath, serverKeyPath); err != http.ErrServerClosed {
 		log.Fatalf("failed to start server: %s", err)
 	}
+	log.Println("N32 server stopped")
 }
