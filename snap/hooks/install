@@ -1,3 +1,0 @@
-#!/bin/sh -e
-
-cp "$SNAP/sepp.yaml" "$SNAP_COMMON/sepp.yaml"
