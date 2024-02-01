@@ -8,38 +8,40 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type TLS struct {
+	Cert string `yaml:"cert"`
+	Key  string `yaml:"key"`
+	CA   string `yaml:"ca"`
+}
+
+type N32 struct {
+	FQDN string `yaml:"fqdn"`
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
+	TLS  TLS    `yaml:"tls"`
+}
+
+type SBI struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
+	TLS  TLS    `yaml:"tls"`
+}
+
 type Config struct {
 	SEPP struct {
 		Local struct {
-			N32 struct {
-				FQDN string `yaml:"fqdn"`
-				Host string `yaml:"host"`
-				Port string `yaml:"port"`
-				TLS  struct {
-					Cert string `yaml:"cert"`
-					Key  string `yaml:"key"`
-					CA   string `yaml:"ca"`
-				} `yaml:"tls"`
-			} `yaml:"n32"`
-			SBI struct {
-				Host string `yaml:"host"`
-				Port string `yaml:"port"`
-				TLS  struct {
-					Cert string `yaml:"cert"`
-					Key  string `yaml:"key"`
-					CA   string `yaml:"ca"`
-				} `yaml:"tls"`
-			} `yaml:"sbi"`
+			N32 N32 `yaml:"n32"`
+			SBI SBI `yaml:"sbi"`
 		} `yaml:"local"`
 		Remote struct {
 			URL string `yaml:"url"`
-			TLS struct {
-				Cert string `yaml:"cert"`
-				Key  string `yaml:"key"`
-				CA   string `yaml:"ca"`
-			} `yaml:"tls"`
+			TLS TLS    `yaml:"tls"`
 		} `yaml:"remote"`
 	} `yaml:"sepp"`
+}
+
+func (n32 N32) GetAddress() string {
+	return n32.Host + ":" + n32.Port
 }
 
 func ReadConfig(reader io.Reader) (*Config, error) {
