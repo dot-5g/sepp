@@ -33,7 +33,7 @@ jobs:
             --insecure-policy \
             copy \
             oci-archive:"${rock_file}" \
-            docker-daemon:"ghcr.io/gruyaume/${image_name}:${version}"
-          docker tag ghcr.io/gruyaume/${image_name}:${version} ghcr.io/gruyaume/${image_name}:latest
-          docker push ghcr.io/gruyaume/${image_name}:${version}
-          docker push ghcr.io/gruyaume/${image_name}:latest
+            docker-daemon:"ghcr.io/dot-5g/${image_name}:${version}"
+          docker tag ghcr.io/dot-5g/${image_name}:${version} ghcr.io/dot-5g/${image_name}:latest
+          docker push ghcr.io/dot-5g/${image_name}:${version}
+          docker push ghcr.io/dot-5g/${image_name}:latest
