@@ -49,14 +49,6 @@ func StartServer(address string, serverCertPath string, serverKeyPath string, ca
 		Addr:      address,
 		TLSConfig: tlsConfig,
 	}
-
-	// go func() {
-	// 	<-ctx.Done()
-	// 	if err := server.Shutdown(context.Background()); err != nil {
-	// 		log.Printf("SBI server shutdown error: %v", err)
-	// 	}
-	// }()
-
 	log.Printf("starting N32 server on %s", address)
 	if err := server.ListenAndServeTLS(serverCertPath, serverKeyPath); err != http.ErrServerClosed {
 		log.Fatalf("failed to start server: %s", err)
