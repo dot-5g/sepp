@@ -1,7 +1,6 @@
 package sbi
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -19,7 +18,7 @@ func newReverseProxy(targetURL string) *httputil.ReverseProxy {
 	return httputil.NewSingleHostReverseProxy(url)
 }
 
-func StartServer(ctx context.Context, config *config.Config) {
+func StartServer(config *config.Config) {
 	proxy := newReverseProxy(config.SEPP.Remote.URL)
 	http.Handle("/", proxy)
 
@@ -28,13 +27,6 @@ func StartServer(ctx context.Context, config *config.Config) {
 		Addr:    address,
 		Handler: proxy,
 	}
-
-	go func() {
-		<-ctx.Done()
-		if err := server.Shutdown(context.Background()); err != nil {
-			log.Printf("SBI server shutdown error: %v", err)
-		}
-	}()
 
 	log.Printf("Starting SBI server on %s", address)
 	if err := server.ListenAndServeTLS(config.SEPP.Local.SBI.TLS.Cert, config.SEPP.Local.SBI.TLS.Key); err != http.ErrServerClosed {
