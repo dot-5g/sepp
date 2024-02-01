@@ -72,3 +72,16 @@ jobs:
 
       - name: Unit tests
         run: go test -cover ./...
+
+  rock-build:
+    uses: ./.github/workflows/build-rock.yaml
+
+  rock-scan:
+    if: github.ref_name == 'main'
+    needs: rock-build
+    uses: ./.github/workflows/scan-rock.yaml
+
+  publish:
+    if: github.ref_name == 'main'
+    needs: [rock-build]
+    uses: ./.github/workflows/publish-rock.yaml

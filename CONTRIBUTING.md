@@ -20,3 +20,12 @@ go test ./...
 ```bash
 golangci-lint run ./...
 ```
+
+## Container image
+
+```bash
+rockcraft pack -v
+version=$(yq '.version' rockcraft.yaml)
+sudo skopeo --insecure-policy copy oci-archive:sepp_${version}_amd64.rock docker-daemon:sepp:${version}
+docker run sepp:${version}
+```
