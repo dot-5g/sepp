@@ -92,12 +92,20 @@ func validateConfig(config *Config) error {
 		return fmt.Errorf("unsupported security capability, only TLS is supported")
 	}
 
+	if config.SEPP.Local.NSEPP.Host == "" {
+		return fmt.Errorf("missing Local NSEPP Host")
+	}
+
+	if config.SEPP.Local.NSEPP.Port == "" {
+		return fmt.Errorf("missing Local NSEPP Port")
+	}
+
 	if config.SEPP.Local.N32.FQDN == "" {
-		return fmt.Errorf("missing FQDN")
+		return fmt.Errorf("missing Local N32 FQDN")
 	}
 
 	if config.SEPP.Local.N32.Host == "" {
-		return fmt.Errorf("missing host")
+		return fmt.Errorf("missing Local N32 Host")
 	}
 
 	if config.SEPP.Local.N32.Port == "" {
@@ -105,28 +113,28 @@ func validateConfig(config *Config) error {
 	}
 
 	if config.SEPP.Local.N32.TLS.Cert == "" {
-		return fmt.Errorf("missing TLS cert")
+		return fmt.Errorf("missing Local N32 TLS Cert")
 	}
 
 	if config.SEPP.Local.N32.TLS.Key == "" {
-		return fmt.Errorf("missing TLS key")
+		return fmt.Errorf("missing Local N32 TLS Key")
 	}
 
 	if config.SEPP.Local.N32.TLS.CA == "" {
-		return fmt.Errorf("missing TLS CA")
+		return fmt.Errorf("missing Local N32 TLS CA")
 	}
 
 	if config.SEPP.Remote.URL != "" {
 		if config.SEPP.Remote.TLS.Cert == "" {
-			return fmt.Errorf("missing remote TLS cert")
+			return fmt.Errorf("missing Remote TLS Cert")
 		}
 
 		if config.SEPP.Remote.TLS.Key == "" {
-			return fmt.Errorf("missing remote TLS key")
+			return fmt.Errorf("missing Remote TLS Key")
 		}
 
 		if config.SEPP.Remote.TLS.CA == "" {
-			return fmt.Errorf("missing remote TLS CA")
+			return fmt.Errorf("missing Remote TLS CA")
 		}
 	}
 	return nil

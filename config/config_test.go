@@ -31,12 +31,12 @@ func TestConfig(t *testing.T) {
 		t.Errorf("Expected port '1234', got '%s'", conf.SEPP.Local.N32.Port)
 	}
 
-	if conf.SEPP.Local.N32.TLS.Cert != "/etc/sepp/certs/server.crt" {
-		t.Errorf("Expected TLS cert '/etc/sepp/certs/server.crt', got '%s'", conf.SEPP.Local.N32.TLS.Cert)
+	if conf.SEPP.Local.N32.TLS.Cert != "/etc/sepp/certs/n32Server.crt" {
+		t.Errorf("Expected TLS cert '/etc/sepp/certs/n32Server.crt', got '%s'", conf.SEPP.Local.N32.TLS.Cert)
 	}
 
-	if conf.SEPP.Local.N32.TLS.Key != "/etc/sepp/certs/server.key" {
-		t.Errorf("Expected TLS key '/etc/sepp/certs/server.key', got '%s'", conf.SEPP.Local.N32.TLS.Key)
+	if conf.SEPP.Local.N32.TLS.Key != "/etc/sepp/certs/n32Server.key" {
+		t.Errorf("Expected TLS key '/etc/sepp/certs/n32Server.key', got '%s'", conf.SEPP.Local.N32.TLS.Key)
 	}
 
 	if conf.SEPP.Local.N32.TLS.CA != "/etc/sepp/certs/ca.crt" {
@@ -51,12 +51,12 @@ func TestConfig(t *testing.T) {
 		t.Errorf("Expected port '1235', got '%s'", conf.SEPP.Local.SBI.Port)
 	}
 
-	if conf.SEPP.Local.SBI.TLS.Cert != "/etc/sepp/certs/server.crt" {
-		t.Errorf("Expected TLS cert '/etc/sepp/certs/server.crt', got '%s'", conf.SEPP.Local.SBI.TLS.Cert)
+	if conf.SEPP.Local.SBI.TLS.Cert != "/etc/sepp/certs/sbiServer.crt" {
+		t.Errorf("Expected TLS cert '/etc/sepp/certs/sbiServer.crt', got '%s'", conf.SEPP.Local.SBI.TLS.Cert)
 	}
 
-	if conf.SEPP.Local.SBI.TLS.Key != "/etc/sepp/certs/server.key" {
-		t.Errorf("Expected TLS key '/etc/sepp/certs/server.key', got '%s'", conf.SEPP.Local.SBI.TLS.Key)
+	if conf.SEPP.Local.SBI.TLS.Key != "/etc/sepp/certs/sbiServer.key" {
+		t.Errorf("Expected TLS key '/etc/sepp/certs/sbiServer.key', got '%s'", conf.SEPP.Local.SBI.TLS.Key)
 	}
 
 	if conf.SEPP.Local.SBI.TLS.CA != "/etc/sepp/certs/ca.crt" {

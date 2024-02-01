@@ -2,6 +2,7 @@ package nsepp
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -24,6 +25,7 @@ func HandleGetMapping(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Either 'foreign-fqdn' or 'telescopic-label' must be provided, but not both.", http.StatusBadRequest)
 		return
 	}
+	fmt.Printf("HELLO")
 
 	var rspData TelescopicMapping
 

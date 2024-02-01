@@ -18,7 +18,7 @@ func newReverseProxy(targetURL string) *httputil.ReverseProxy {
 	return httputil.NewSingleHostReverseProxy(url)
 }
 
-func StartServer(remoteURL string, address string, sbiTLS *config.TLS) {
+func StartServer(remoteURL string, address string, sbiTLS config.TLS) {
 	proxy := newReverseProxy(remoteURL)
 	http.Handle("/", proxy)
 

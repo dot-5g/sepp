@@ -9,20 +9,20 @@ import (
 
 func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("sbi - request received: %s %s", r.Method, r.URL.Path)
+		log.Printf("nsepp - request received: %s %s", r.Method, r.URL.Path)
 		next(w, r)
-		log.Printf("sbi - request handled: %s %s", r.Method, r.URL.Path)
+		log.Printf("nsepp - request handled: %s %s", r.Method, r.URL.Path)
 	}
 }
 
-func StartServer(address string, config *config.TLS) {
+func StartServer(address string, config config.TLS) {
 	server := &http.Server{
 		Addr: address,
 	}
 	http.HandleFunc("/nsepp-telescopic/v1/mapping", loggingMiddleware(HandleGetMapping))
-	log.Printf("starting SBI server on %s", address)
+	log.Printf("starting Nsepp server on %s", address)
 	if err := server.ListenAndServeTLS(config.Cert, config.Key); err != http.ErrServerClosed {
-		log.Fatalf("failed to start server: %v", err)
+		log.Fatalf("failed to start Nsepp server: %v", err)
 	}
-	log.Println("SBI server stopped")
+	log.Println("Nsepp server stopped")
 }
