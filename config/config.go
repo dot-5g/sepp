@@ -14,6 +14,12 @@ type TLS struct {
 	CA   string `yaml:"ca"`
 }
 
+type NSEPP struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
+	TLS  TLS    `yaml:"tls"`
+}
+
 type N32 struct {
 	FQDN string `yaml:"fqdn"`
 	Host string `yaml:"host"`
@@ -27,21 +33,37 @@ type SBI struct {
 	TLS  TLS    `yaml:"tls"`
 }
 
+type Local struct {
+	NSEPP NSEPP `yaml:"nsepp"`
+	N32   N32   `yaml:"n32"`
+	SBI   SBI   `yaml:"sbi"`
+}
+
+type Remote struct {
+	URL string `yaml:"url"`
+	TLS TLS    `yaml:"tls"`
+}
+
+type SEPP struct {
+	SecurityCapability string `yaml:"securityCapability"`
+	Local              Local  `yaml:"local"`
+	Remote             Remote `yaml:"remote"`
+}
+
 type Config struct {
-	SEPP struct {
-		Local struct {
-			N32 N32 `yaml:"n32"`
-			SBI SBI `yaml:"sbi"`
-		} `yaml:"local"`
-		Remote struct {
-			URL string `yaml:"url"`
-			TLS TLS    `yaml:"tls"`
-		} `yaml:"remote"`
-	} `yaml:"sepp"`
+	SEPP SEPP `yaml:"sepp"`
+}
+
+func (nsepp NSEPP) GetAddress() string {
+	return nsepp.Host + ":" + nsepp.Port
 }
 
 func (n32 N32) GetAddress() string {
 	return n32.Host + ":" + n32.Port
+}
+
+func (sbi SBI) GetAddress() string {
+	return sbi.Host + ":" + sbi.Port
 }
 
 func ReadConfig(reader io.Reader) (*Config, error) {
@@ -65,6 +87,11 @@ func ReadConfig(reader io.Reader) (*Config, error) {
 }
 
 func validateConfig(config *Config) error {
+
+	if config.SEPP.SecurityCapability != "TLS" {
+		return fmt.Errorf("unsupported security capability, only TLS is supported")
+	}
+
 	if config.SEPP.Local.N32.FQDN == "" {
 		return fmt.Errorf("missing FQDN")
 	}

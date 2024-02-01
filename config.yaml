@@ -1,9 +1,10 @@
 sepp:
+  securityCapability: "TLS"
   local:
     n32:
       fqdn: "local-sepp.example.com"
       host: "localhost"
-      port: "1236"
+      port: "1238"
       tls:
         cert: "certs/n32Server.crt"
         key: "certs/n32Server.key"
@@ -11,13 +12,13 @@ sepp:
     sbi:
       fqdn: "local-sbi.example.com"
       host: "localhost"
-      port: "1237"
+      port: "1239"
       tls:
         cert: "certs/sbiServer.crt"
         key: "certs/sbiServer.key"
         ca: "certs/ca.crt"
   remote:
-    url: "https://127.0.0.1:1235"
+    url: "https://127.0.0.1:1236"
     tls:
       cert: "certs/client.crt"
       key: "certs/client.key"

@@ -1,20 +1,28 @@
 sepp:
+  securityCapability: "TLS"
   local:
+    nsepp:
+      host: "localhost"
+      port: "1233"
+      tls:
+        cert: "/etc/sepp/certs/nseppServer.crt"
+        key: "/etc/sepp/certs/nseppServer.key"
+        ca: "/etc/sepp/certs/ca.crt"
     n32:
       fqdn: "local-sepp.example.com"
       host: "localhost"
       port: "1234"
       tls:
-        cert: "/etc/sepp/certs/server.crt"
-        key: "/etc/sepp/certs/server.key"
+        cert: "/etc/sepp/certs/n32Server.crt"
+        key: "/etc/sepp/certs/n32Server.key"
         ca: "/etc/sepp/certs/ca.crt"
     sbi:
       fqdn: "local-sbi.example.com"
       host: "localhost"
       port: "1235"
       tls:
-        cert: "/etc/sepp/certs/server.crt"
-        key: "/etc/sepp/certs/server.key"
+        cert: "/etc/sepp/certs/sbiServer.crt"
+        key: "/etc/sepp/certs/sbiServer.key"
         ca: "/etc/sepp/certs/ca.crt"
   remote:
     url: "https://remote-sepp.example.com"
