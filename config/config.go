@@ -35,11 +35,7 @@ type Config struct {
 		} `yaml:"local"`
 		Remote struct {
 			URL string `yaml:"url"`
-			TLS struct {
-				Cert string `yaml:"cert"`
-				Key  string `yaml:"key"`
-				CA   string `yaml:"ca"`
-			} `yaml:"tls"`
+			TLS TLS    `yaml:"tls"`
 		} `yaml:"remote"`
 	} `yaml:"sepp"`
 }
