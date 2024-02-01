@@ -77,11 +77,11 @@ jobs:
     uses: ./.github/workflows/build-rock.yaml
 
   rock-scan:
-    # if: github.ref_name == 'main'
+    if: github.ref_name == 'main'
     needs: rock-build
     uses: ./.github/workflows/scan-rock.yaml
 
   publish:
-    # if: github.ref_name == 'main'
+    if: github.ref_name == 'main'
     needs: [rock-build]
     uses: ./.github/workflows/publish-rock.yaml
