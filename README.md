@@ -8,9 +8,9 @@ An open source implementation of the 5G Security Edge Protection Proxy (SEPP) th
 
 ## Usage
 
-```bash
-go build cmd/sepp/main.go
-./main --config=config.yaml
+```console
+docker pull ghcr.io/dot-5g/sepp:latest
+docker run -it ghcr.io/dot-5g/sepp:latest
 ```
 
 ## Reference
