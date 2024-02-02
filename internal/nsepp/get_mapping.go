@@ -5,18 +5,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-)
 
-type FQDN string
+	"github.com/dot-5g/sepp/internal/model"
+)
 
 type TelescopicMapping struct {
 	TelescopicLabel string
-	SeppDomain      FQDN
-	ForeignFqdn     FQDN
+	SeppDomain      model.FQDN
+	ForeignFqdn     model.FQDN
+}
+
+// <Label representing FQDN from other PLMN>.<FQDN of the SEPP in the request initiating PLMN>
+func generateTelescopicMapping(remoteFQDN model.FQDN, localSEPPFQDN model.FQDN) (telescopicLabel model.FQDN) {
+	return model.FQDN(fmt.Sprintf("%s.%s", remoteFQDN, localSEPPFQDN))
 }
 
 // Retrieve the mapping between the FQDN in a foreign PLMN and a telescopic FQDN, or vice versa.
-func HandleGetMapping(w http.ResponseWriter, r *http.Request) {
+func HandleGetMapping(w http.ResponseWriter, r *http.Request, seppContext *model.SEPPContext) {
 	queryParams := r.URL.Query()
 	foreignFqdn := queryParams.Get("foreign-fqdn")
 	telescopicLabel := queryParams.Get("telescopic-label")
@@ -25,13 +30,13 @@ func HandleGetMapping(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Either 'foreign-fqdn' or 'telescopic-label' must be provided, but not both.", http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("HELLO")
 
 	var rspData TelescopicMapping
 
 	if telescopicLabel != "" {
+		foreignFQDN := generateTelescopicMapping(model.FQDN(telescopicLabel), seppContext.LocalFQDN)
 		rspData = TelescopicMapping{
-			ForeignFqdn: FQDN("foreignFqdn"),
+			ForeignFqdn: foreignFQDN,
 		}
 	} else if foreignFqdn != "" {
 		rspData = TelescopicMapping{

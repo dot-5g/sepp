@@ -5,21 +5,18 @@ import (
 	"log"
 	"net/http"
 	"slices"
+
+	"github.com/dot-5g/sepp/internal/model"
 )
 
-type SecurityCapability string
-
-const TLS = SecurityCapability("TLS")
-const ALS = SecurityCapability("ALS")
-
 type SecNegotiateReqData struct {
-	Sender                     FQDN
-	SupportedSecCapabilityList []SecurityCapability
+	Sender                     model.FQDN
+	SupportedSecCapabilityList []model.SecurityCapability
 }
 
 type SecNegotiateRspData struct {
-	Sender                FQDN
-	SelectedSecCapability SecurityCapability
+	Sender                model.FQDN
+	SelectedSecCapability model.SecurityCapability
 }
 
 func (n32c *N32C) HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +40,7 @@ func (n32c *N32C) HandlePostExchangeCapability(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	containsTLS := slices.Contains(reqData.SupportedSecCapabilityList, TLS)
+	containsTLS := slices.Contains(reqData.SupportedSecCapabilityList, model.TLS)
 	if !containsTLS {
 		http.Error(w, "Bad SecurityCapability - Only TLS is supported", http.StatusBadRequest)
 		log.Printf("Bad SecurityCapability - Only TLS is supported")
@@ -52,7 +49,7 @@ func (n32c *N32C) HandlePostExchangeCapability(w http.ResponseWriter, r *http.Re
 
 	rspData := SecNegotiateRspData{
 		Sender:                n32c.FQDN,
-		SelectedSecCapability: TLS,
+		SelectedSecCapability: model.TLS,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

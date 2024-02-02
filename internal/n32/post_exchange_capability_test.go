@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/dot-5g/sepp/internal/model"
 	"github.com/dot-5g/sepp/internal/n32"
 )
 
@@ -14,7 +15,7 @@ func TestGivenTLSCapabilityWhenHandlePostExchangeCapabilityThenReturns200(t *tes
 	seppFQDN := "sepp.local"
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
 		Sender:                     "testSender",
-		SupportedSecCapabilityList: []n32.SecurityCapability{n32.TLS},
+		SupportedSecCapabilityList: []model.SecurityCapability{model.TLS},
 	})
 	if err != nil {
 		t.Fatalf("Failed to marshal request body: %v", err)
@@ -28,7 +29,7 @@ func TestGivenTLSCapabilityWhenHandlePostExchangeCapabilityThenReturns200(t *tes
 	rr := httptest.NewRecorder()
 
 	handler := n32.N32C{
-		FQDN: n32.FQDN(seppFQDN),
+		FQDN: model.FQDN(seppFQDN),
 	}
 
 	handler.HandlePostExchangeCapability(rr, req)
@@ -38,8 +39,8 @@ func TestGivenTLSCapabilityWhenHandlePostExchangeCapabilityThenReturns200(t *tes
 	}
 
 	expectedResponse := n32.SecNegotiateRspData{
-		Sender:                n32.FQDN(seppFQDN),
-		SelectedSecCapability: n32.TLS,
+		Sender:                model.FQDN(seppFQDN),
+		SelectedSecCapability: model.TLS,
 	}
 
 	var actualResponse n32.SecNegotiateRspData
@@ -57,7 +58,7 @@ func TestGivenALSCapabilityWhenHandlePostExchangeCapabilityThenReturns4xx(t *tes
 	seppFQDN := "sepp.local"
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
 		Sender:                     "testSender",
-		SupportedSecCapabilityList: []n32.SecurityCapability{n32.ALS},
+		SupportedSecCapabilityList: []model.SecurityCapability{model.ALS},
 	})
 	if err != nil {
 		t.Fatalf("Failed to marshal request body: %v", err)
@@ -71,7 +72,7 @@ func TestGivenALSCapabilityWhenHandlePostExchangeCapabilityThenReturns4xx(t *tes
 	rr := httptest.NewRecorder()
 
 	handler := n32.N32C{
-		FQDN: n32.FQDN(seppFQDN),
+		FQDN: model.FQDN(seppFQDN),
 	}
 
 	handler.HandlePostExchangeCapability(rr, req)

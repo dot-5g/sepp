@@ -5,10 +5,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/dot-5g/sepp/internal/model"
 	"github.com/dot-5g/sepp/internal/nsepp"
 )
 
 func TestGivenNoParameterWhenGETMappingThenReturn400(t *testing.T) {
+	seppContext := new(model.SEPPContext)
 	req, err := http.NewRequest("GET", "/nsepp-telescopic/v1/mapping", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
@@ -16,7 +18,7 @@ func TestGivenNoParameterWhenGETMappingThenReturn400(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	nsepp.HandleGetMapping(rr, req)
+	nsepp.HandleGetMapping(rr, req, seppContext)
 
 	if status := rr.Code; status != http.StatusBadRequest {
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
@@ -24,6 +26,7 @@ func TestGivenNoParameterWhenGETMappingThenReturn400(t *testing.T) {
 }
 
 func GivenBothParametersWhenGETMappingThenReturn400(t *testing.T) {
+	seppContext := new(model.SEPPContext)
 	req, err := http.NewRequest("GET", "/nsepp-telescopic/v1/mapping?foreign-fqdn=sepp.local&telescopic-label=sepp.local", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
@@ -31,7 +34,7 @@ func GivenBothParametersWhenGETMappingThenReturn400(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	nsepp.HandleGetMapping(rr, req)
+	nsepp.HandleGetMapping(rr, req, seppContext)
 
 	if status := rr.Code; status != http.StatusBadRequest {
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
@@ -39,6 +42,7 @@ func GivenBothParametersWhenGETMappingThenReturn400(t *testing.T) {
 }
 
 func TestGivenForeignFQDNWhenGETMappingThenReturn200(t *testing.T) {
+	seppContext := new(model.SEPPContext)
 	req, err := http.NewRequest("GET", "/nsepp-telescopic/v1/mapping?foreign-fqdn=sepp.local", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
@@ -46,7 +50,7 @@ func TestGivenForeignFQDNWhenGETMappingThenReturn200(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	nsepp.HandleGetMapping(rr, req)
+	nsepp.HandleGetMapping(rr, req, seppContext)
 
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusOK)
@@ -54,6 +58,7 @@ func TestGivenForeignFQDNWhenGETMappingThenReturn200(t *testing.T) {
 }
 
 func TestGivenTelescopicLabelWhenGETMappingThenReturn200(t *testing.T) {
+	seppContext := new(model.SEPPContext)
 	req, err := http.NewRequest("GET", "/nsepp-telescopic/v1/mapping?telescopic-label=sepp.local", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
@@ -61,7 +66,7 @@ func TestGivenTelescopicLabelWhenGETMappingThenReturn200(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	nsepp.HandleGetMapping(rr, req)
+	nsepp.HandleGetMapping(rr, req, seppContext)
 
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusOK)
