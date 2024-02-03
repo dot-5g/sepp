@@ -8,7 +8,6 @@ import (
 	"github.com/dot-5g/sepp/config"
 	"github.com/dot-5g/sepp/internal/model"
 	"github.com/dot-5g/sepp/internal/n32"
-	"github.com/dot-5g/sepp/internal/nsepp"
 	"github.com/dot-5g/sepp/internal/sbi"
 )
 
@@ -40,7 +39,6 @@ func main() {
 		seppContext.Mu.Unlock()
 	}
 	startSBIServer(&wg, remoteURL, conf.SEPP.Local.SBI)
-	startNSEPPServer(&wg, conf.SEPP.Local.NSEPP, seppContext)
 	wg.Wait()
 }
 
@@ -57,14 +55,6 @@ func startSBIServer(wg *sync.WaitGroup, remoteURL string, sbiConfig config.SBI) 
 	go func() {
 		defer wg.Done()
 		sbi.StartServer(remoteURL, sbiConfig.GetAddress(), sbiConfig.TLS)
-	}()
-}
-
-func startNSEPPServer(wg *sync.WaitGroup, nseppConfig config.NSEPP, seppContext *model.SEPPContext) {
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		nsepp.StartServer(nseppConfig.GetAddress(), nseppConfig.TLS, seppContext)
 	}()
 }
 
