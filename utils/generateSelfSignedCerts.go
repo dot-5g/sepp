@@ -32,12 +32,6 @@ func main() {
 		panic(err)
 	}
 
-	nseppCert, nseppKey := generateCert("NSEPP Server", caCert, caKey, false, hosts)
-	err = writeCertAndKey(certsPath+"nseppServer.crt", nseppCert, certsPath+"nseppServer.key", nseppKey)
-	if err != nil {
-		panic(err)
-	}
-
 	n32Cert, n32Key := generateCert("N32 Server", caCert, caKey, false, hosts)
 	err = writeCertAndKey(certsPath+"n32Server.crt", n32Cert, certsPath+"n32Server.key", n32Key)
 	if err != nil {

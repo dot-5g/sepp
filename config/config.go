@@ -14,12 +14,6 @@ type TLS struct {
 	CA   string `yaml:"ca"`
 }
 
-type NSEPP struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
-	TLS  TLS    `yaml:"tls"`
-}
-
 type N32 struct {
 	FQDN string `yaml:"fqdn"`
 	Host string `yaml:"host"`
@@ -34,9 +28,8 @@ type SBI struct {
 }
 
 type Local struct {
-	NSEPP NSEPP `yaml:"nsepp"`
-	N32   N32   `yaml:"n32"`
-	SBI   SBI   `yaml:"sbi"`
+	N32 N32 `yaml:"n32"`
+	SBI SBI `yaml:"sbi"`
 }
 
 type Remote struct {
@@ -52,10 +45,6 @@ type SEPP struct {
 
 type Config struct {
 	SEPP SEPP `yaml:"sepp"`
-}
-
-func (nsepp NSEPP) GetAddress() string {
-	return nsepp.Host + ":" + nsepp.Port
 }
 
 func (n32 N32) GetAddress() string {
@@ -90,14 +79,6 @@ func validateConfig(config *Config) error {
 
 	if config.SEPP.SecurityCapability != "TLS" {
 		return fmt.Errorf("unsupported security capability, only TLS is supported")
-	}
-
-	if config.SEPP.Local.NSEPP.Host == "" {
-		return fmt.Errorf("missing Local NSEPP Host")
-	}
-
-	if config.SEPP.Local.NSEPP.Port == "" {
-		return fmt.Errorf("missing Local NSEPP Port")
 	}
 
 	if config.SEPP.Local.N32.FQDN == "" {

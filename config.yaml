@@ -1,13 +1,6 @@
 sepp:
   securityCapability: "TLS"
   local:
-    nsepp:
-      host: "localhost"
-      port: "1240"
-      tls:
-        cert: "certs/nseppServer.crt"
-        key: "certs/nseppServer.key"
-        ca: "certs/ca.crt"
     n32:
       fqdn: "local-sepp.example.com"
       host: "localhost"
