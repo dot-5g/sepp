@@ -10,11 +10,6 @@ import (
 	"github.com/dot-5g/sepp/internal/model"
 )
 
-type N32C struct {
-	FQDN         model.FQDN
-	Capabilities []model.SecurityCapability
-}
-
 func loadClientCAs(caCertPath string) (*x509.CertPool, error) {
 	caCert, err := os.ReadFile(caCertPath)
 	if err != nil {
@@ -34,9 +29,10 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func StartServer(address string, serverCertPath string, serverKeyPath string, caCertPath string, fqdn string) {
-	n32c := N32C{FQDN: model.FQDN(fqdn), Capabilities: []model.SecurityCapability{model.TLS}}
-	http.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(n32c.HandlePostExchangeCapability))
+func StartServer(address string, serverCertPath string, serverKeyPath string, caCertPath string, fqdn string, seppContext *model.SEPPContext) {
+	http.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		HandlePostExchangeCapability(w, r, seppContext)
+	}))
 	clientCAPool, err := loadClientCAs(caCertPath)
 	if err != nil {
 		log.Fatalf("failed to load client CA certificate: %s", err)

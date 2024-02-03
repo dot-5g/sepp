@@ -20,13 +20,18 @@ func init() {
 func main() {
 	flag.Parse()
 	var wg sync.WaitGroup
-	seppContext := &model.SEPPContext{}
+	seppContext := &model.SEPPContext{
+		Mu:                 sync.Mutex{},
+		LocalFQDN:          model.FQDN("local-sepp.example.com"),
+		RemoteFQDN:         model.FQDN(""),
+		SecurityCapability: model.SecurityCapability("TLS"),
+	}
 
 	conf, err := config.LoadConfiguration(configFilePath)
 	if err != nil {
 		log.Fatalf("failed to read config file: %s", err)
 	}
-	startN32Server(&wg, conf.SEPP.Local.N32)
+	startN32Server(&wg, conf.SEPP.Local.N32, seppContext)
 	remoteURL := conf.SEPP.Remote.URL
 	if remoteURL != "" {
 		secNegotiateRspData, err := exchangeCapability(remoteURL, conf.SEPP.Local.N32.FQDN, conf.SEPP.SecurityCapability, conf.SEPP.Remote.TLS)
@@ -35,18 +40,17 @@ func main() {
 		}
 		seppContext.Mu.Lock()
 		seppContext.RemoteFQDN = model.FQDN(secNegotiateRspData.Sender)
-		seppContext.SecurityCapability = model.SecurityCapability(secNegotiateRspData.SelectedSecCapability)
 		seppContext.Mu.Unlock()
 	}
 	startSBIServer(&wg, remoteURL, conf.SEPP.Local.SBI)
 	wg.Wait()
 }
 
-func startN32Server(wg *sync.WaitGroup, n32Config config.N32) {
+func startN32Server(wg *sync.WaitGroup, n32Config config.N32, seppContext *model.SEPPContext) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		n32.StartServer(n32Config.GetAddress(), n32Config.TLS.Cert, n32Config.TLS.Key, n32Config.TLS.CA, n32Config.FQDN)
+		n32.StartServer(n32Config.GetAddress(), n32Config.TLS.Cert, n32Config.TLS.Key, n32Config.TLS.CA, n32Config.FQDN, seppContext)
 	}()
 }
 
