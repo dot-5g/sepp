@@ -27,21 +27,32 @@ type SBI struct {
 	TLS  TLS    `yaml:"tls"`
 }
 
+type Local struct {
+	N32 N32 `yaml:"n32"`
+	SBI SBI `yaml:"sbi"`
+}
+
+type Remote struct {
+	URL string `yaml:"url"`
+	TLS TLS    `yaml:"tls"`
+}
+
+type SEPP struct {
+	SecurityCapability string `yaml:"securityCapability"`
+	Local              Local  `yaml:"local"`
+	Remote             Remote `yaml:"remote"`
+}
+
 type Config struct {
-	SEPP struct {
-		Local struct {
-			N32 N32 `yaml:"n32"`
-			SBI SBI `yaml:"sbi"`
-		} `yaml:"local"`
-		Remote struct {
-			URL string `yaml:"url"`
-			TLS TLS    `yaml:"tls"`
-		} `yaml:"remote"`
-	} `yaml:"sepp"`
+	SEPP SEPP `yaml:"sepp"`
 }
 
 func (n32 N32) GetAddress() string {
 	return n32.Host + ":" + n32.Port
+}
+
+func (sbi SBI) GetAddress() string {
+	return sbi.Host + ":" + sbi.Port
 }
 
 func ReadConfig(reader io.Reader) (*Config, error) {
@@ -65,12 +76,17 @@ func ReadConfig(reader io.Reader) (*Config, error) {
 }
 
 func validateConfig(config *Config) error {
+
+	if config.SEPP.SecurityCapability != "TLS" {
+		return fmt.Errorf("unsupported security capability, only TLS is supported")
+	}
+
 	if config.SEPP.Local.N32.FQDN == "" {
-		return fmt.Errorf("missing FQDN")
+		return fmt.Errorf("missing Local N32 FQDN")
 	}
 
 	if config.SEPP.Local.N32.Host == "" {
-		return fmt.Errorf("missing host")
+		return fmt.Errorf("missing Local N32 Host")
 	}
 
 	if config.SEPP.Local.N32.Port == "" {
@@ -78,28 +94,28 @@ func validateConfig(config *Config) error {
 	}
 
 	if config.SEPP.Local.N32.TLS.Cert == "" {
-		return fmt.Errorf("missing TLS cert")
+		return fmt.Errorf("missing Local N32 TLS Cert")
 	}
 
 	if config.SEPP.Local.N32.TLS.Key == "" {
-		return fmt.Errorf("missing TLS key")
+		return fmt.Errorf("missing Local N32 TLS Key")
 	}
 
 	if config.SEPP.Local.N32.TLS.CA == "" {
-		return fmt.Errorf("missing TLS CA")
+		return fmt.Errorf("missing Local N32 TLS CA")
 	}
 
 	if config.SEPP.Remote.URL != "" {
 		if config.SEPP.Remote.TLS.Cert == "" {
-			return fmt.Errorf("missing remote TLS cert")
+			return fmt.Errorf("missing Remote TLS Cert")
 		}
 
 		if config.SEPP.Remote.TLS.Key == "" {
-			return fmt.Errorf("missing remote TLS key")
+			return fmt.Errorf("missing Remote TLS Key")
 		}
 
 		if config.SEPP.Remote.TLS.CA == "" {
-			return fmt.Errorf("missing remote TLS CA")
+			return fmt.Errorf("missing Remote TLS CA")
 		}
 	}
 	return nil

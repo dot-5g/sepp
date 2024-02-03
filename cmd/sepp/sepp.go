@@ -4,9 +4,9 @@ import (
 	"flag"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/dot-5g/sepp/config"
+	"github.com/dot-5g/sepp/internal/model"
 	"github.com/dot-5g/sepp/internal/n32"
 	"github.com/dot-5g/sepp/internal/sbi"
 )
@@ -20,44 +20,59 @@ func init() {
 func main() {
 	flag.Parse()
 	var wg sync.WaitGroup
+	seppContext := &model.SEPPContext{}
+
 	conf, err := config.LoadConfiguration(configFilePath)
 	if err != nil {
-		log.Fatalf("Failed to read config file: %s", err)
+		log.Fatalf("failed to read config file: %s", err)
 	}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		n32.StartServer(conf.SEPP.Local.N32.GetAddress(), conf.SEPP.Local.N32.TLS.Cert, conf.SEPP.Local.N32.TLS.Key, conf.SEPP.Local.N32.TLS.CA, conf.SEPP.Local.N32.FQDN)
-	}()
+	startN32Server(&wg, conf.SEPP.Local.N32)
 	remoteURL := conf.SEPP.Remote.URL
 	if remoteURL != "" {
-		exchangeCapability(remoteURL, conf.SEPP.Remote.TLS)
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			sbi.StartServer(conf)
-		}()
+		secNegotiateRspData, err := exchangeCapability(remoteURL, conf.SEPP.Local.N32.FQDN, conf.SEPP.SecurityCapability, conf.SEPP.Remote.TLS)
+		if err != nil {
+			log.Fatalf("failed to exchange capability: %s", err)
+		}
+		seppContext.Mu.Lock()
+		seppContext.RemoteFQDN = model.FQDN(secNegotiateRspData.Sender)
+		seppContext.SecurityCapability = model.SecurityCapability(secNegotiateRspData.SelectedSecCapability)
+		seppContext.Mu.Unlock()
 	}
+	startSBIServer(&wg, remoteURL, conf.SEPP.Local.SBI)
 	wg.Wait()
 }
 
-func exchangeCapability(remoteURL string, n32TLSConf config.TLS) {
+func startN32Server(wg *sync.WaitGroup, n32Config config.N32) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		n32.StartServer(n32Config.GetAddress(), n32Config.TLS.Cert, n32Config.TLS.Key, n32Config.TLS.CA, n32Config.FQDN)
+	}()
+}
+
+func startSBIServer(wg *sync.WaitGroup, remoteURL string, sbiConfig config.SBI) {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		sbi.StartServer(remoteURL, sbiConfig.GetAddress(), sbiConfig.TLS)
+	}()
+}
+
+func exchangeCapability(remoteURL string, fqdn string, securityCapability string, n32TLSConf config.TLS) (n32.SecNegotiateRspData, error) {
 	seppClient := n32.NewClient(n32TLSConf.Cert, n32TLSConf.Key, n32TLSConf.CA)
 	reqData := n32.SecNegotiateReqData{
-		Sender:                     n32.FQDN("testSender"),
-		SupportedSecCapabilityList: []n32.SecurityCapability{n32.TLS},
+		Sender:                     model.FQDN(fqdn),
+		SupportedSecCapabilityList: []model.SecurityCapability{model.SecurityCapability(securityCapability)},
 	}
-	for {
-		cap, err := seppClient.POSTExchangeCapability(remoteURL, reqData)
-		if err == nil && cap.SelectedSecCapability == n32.TLS {
-			log.Printf("Successfully exchanged capability: %s", cap.SelectedSecCapability)
-			break
-		}
-		if err != nil {
-			log.Printf("Failed to exchange capability: %s", err)
-		} else {
-			log.Printf("Failed to exchange capability: expected %s, got %s", n32.TLS, cap)
-		}
-		time.Sleep(30 * time.Second)
+	secNegotiateRspData, err := seppClient.POSTExchangeCapability(remoteURL, reqData)
+	if err != nil {
+		log.Printf("failed to exchange capability: %s", err)
+		return secNegotiateRspData, err
 	}
+	if secNegotiateRspData.SelectedSecCapability != model.TLS {
+		log.Printf("failed to exchange capability: expected %s, got %s", model.TLS, secNegotiateRspData)
+		return secNegotiateRspData, err
+	}
+	log.Printf("successfully exchanged capability %s with remote SEPP %s", secNegotiateRspData.SelectedSecCapability, remoteURL)
+	return secNegotiateRspData, nil
 }

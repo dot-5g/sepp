@@ -6,13 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/dot-5g/sepp/internal/model"
 )
 
-type FQDN string
-
 type N32C struct {
-	FQDN         FQDN
-	Capabilities []SecurityCapability
+	FQDN         model.FQDN
+	Capabilities []model.SecurityCapability
 }
 
 func loadClientCAs(caCertPath string) (*x509.CertPool, error) {
@@ -35,7 +35,7 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func StartServer(address string, serverCertPath string, serverKeyPath string, caCertPath string, fqdn string) {
-	n32c := N32C{FQDN: FQDN(fqdn), Capabilities: []SecurityCapability{TLS}}
+	n32c := N32C{FQDN: model.FQDN(fqdn), Capabilities: []model.SecurityCapability{model.TLS}}
 	http.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(n32c.HandlePostExchangeCapability))
 	clientCAPool, err := loadClientCAs(caCertPath)
 	if err != nil {
