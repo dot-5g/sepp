@@ -19,7 +19,7 @@ type SecNegotiateRspData struct {
 	SelectedSecCapability model.SecurityCapability
 }
 
-func (n32c *N32C) HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request) {
+func HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request, seppContext *model.SEPPContext) {
 	reqData := new(SecNegotiateReqData)
 
 	if err := json.NewDecoder(r.Body).Decode(reqData); err != nil {
@@ -40,16 +40,16 @@ func (n32c *N32C) HandlePostExchangeCapability(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	containsTLS := slices.Contains(reqData.SupportedSecCapabilityList, model.TLS)
-	if !containsTLS {
-		http.Error(w, "Bad SecurityCapability - Only TLS is supported", http.StatusBadRequest)
-		log.Printf("Bad SecurityCapability - Only TLS is supported")
+	containsSupportedCapability := slices.Contains(reqData.SupportedSecCapabilityList, seppContext.SecurityCapability)
+	if !containsSupportedCapability {
+		http.Error(w, "Bad SecurityCapability", http.StatusBadRequest)
+		log.Printf("Bad SecurityCapability - Only %s is supported", seppContext.SecurityCapability)
 		return
 	}
 
 	rspData := SecNegotiateRspData{
-		Sender:                n32c.FQDN,
-		SelectedSecCapability: model.TLS,
+		Sender:                seppContext.LocalFQDN,
+		SelectedSecCapability: seppContext.SecurityCapability,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -60,4 +60,8 @@ func (n32c *N32C) HandlePostExchangeCapability(w http.ResponseWriter, r *http.Re
 		log.Printf("Failed to encode response: %v", err)
 		return
 	}
+
+	seppContext.Mu.Lock()
+	seppContext.RemoteFQDN = reqData.Sender
+	seppContext.Mu.Unlock()
 }
