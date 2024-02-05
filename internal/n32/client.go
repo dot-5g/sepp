@@ -69,5 +69,6 @@ func (c *Client) POSTExchangeCapability(remoteURL string, secNegotiateReqData Se
 		return secNegotiateRspData, err
 	}
 	log.Printf("n32 client - successfully exchanged capability %s with remote SEPP %s", secNegotiateRspData.SelectedSecCapability, remoteURL)
+
 	return secNegotiateRspData, nil
 }

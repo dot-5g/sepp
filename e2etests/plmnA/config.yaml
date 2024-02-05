@@ -17,3 +17,9 @@ sepp:
         cert: "/etc/sepp/certs/sbiServer.crt"
         key: "/etc/sepp/certs/sbiServer.key"
         ca: "/etc/sepp/certs/ca.crt"
+  remote:
+    url: "https://0.0.0.0:1233"
+    tls:
+      cert: "/etc/sepp/certs/client.crt"
+      key: "/etc/sepp/certs/client.key"
+      ca: "/etc/sepp/certs/ca.crt"

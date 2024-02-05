@@ -30,19 +30,22 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func StartServer(address string, serverCertPath string, serverKeyPath string, caCertPath string, fqdn string, seppContext *model.SEPPContext) {
-	http.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/n32c-handshake/v1/exchange-capability", loggingMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		HandlePostExchangeCapability(w, r, seppContext)
 	}))
 	clientCAPool, err := loadClientCAs(caCertPath)
 	if err != nil {
 		log.Fatalf("failed to load client CA certificate: %s", err)
 	}
+
 	tlsConfig := &tls.Config{
 		ClientCAs:  clientCAPool,
 		ClientAuth: tls.RequireAndVerifyClientCert,
 	}
 	server := &http.Server{
 		Addr:      address,
+		Handler:   mux,
 		TLSConfig: tlsConfig,
 	}
 	log.Printf("N32 server - starting listening on %s", address)

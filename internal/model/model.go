@@ -12,8 +12,9 @@ const TLS = SecurityCapability("TLS")
 const ALS = SecurityCapability("ALS")
 
 type SEPPContext struct {
-	LocalN32FQDN       FQDN
-	RemoteN32FQDN      FQDN
-	SecurityCapability SecurityCapability
-	Mu                 sync.Mutex
+	LocalN32FQDN                FQDN
+	RemoteN32FQDN               FQDN
+	SupportedSecurityCapability SecurityCapability
+	SelectedSecurityCapability  SecurityCapability
+	Mu                          sync.Mutex
 }

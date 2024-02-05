@@ -23,7 +23,7 @@ func main() {
 
 	flag.Parse()
 
-	hosts := []string{"localhost", "127.0.0.1", "local-sepp.example.com", "local-sbi.example.com"}
+	hosts := []string{"localhost", "127.0.0.1", "0.0.0.0", "local-sepp.example.com", "local-sbi.example.com"}
 
 	caCert, caKey := generateCert("CA", nil, nil, true, hosts)
 

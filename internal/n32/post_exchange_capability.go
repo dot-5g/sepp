@@ -40,16 +40,16 @@ func HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request, seppCo
 		return
 	}
 
-	containsSupportedCapability := slices.Contains(reqData.SupportedSecCapabilityList, seppContext.SecurityCapability)
+	containsSupportedCapability := slices.Contains(reqData.SupportedSecCapabilityList, seppContext.SupportedSecurityCapability)
 	if !containsSupportedCapability {
 		http.Error(w, "Bad SecurityCapability", http.StatusBadRequest)
-		log.Printf("N32 server - bad SecurityCapability - Only %s is supported", seppContext.SecurityCapability)
+		log.Printf("N32 server - bad SecurityCapability - Only %s is supported", seppContext.SupportedSecurityCapability)
 		return
 	}
 
 	rspData := SecNegotiateRspData{
 		Sender:                seppContext.LocalN32FQDN,
-		SelectedSecCapability: seppContext.SecurityCapability,
+		SelectedSecCapability: seppContext.SupportedSecurityCapability,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -63,6 +63,7 @@ func HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request, seppCo
 
 	seppContext.Mu.Lock()
 	seppContext.RemoteN32FQDN = reqData.Sender
+	seppContext.SelectedSecurityCapability = rspData.SelectedSecCapability
 	seppContext.Mu.Unlock()
 	log.Printf("N32 server - successfully exchanged capability %s with remote SEPP %s", rspData.SelectedSecCapability, reqData.Sender)
 }

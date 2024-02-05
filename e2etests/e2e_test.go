@@ -37,7 +37,8 @@ func TestEndToEnd(t *testing.T) {
 		},
 	}
 
-	resp, err := client.Get(PLMNASBIFQDN)
+	address := PLMNASBIFQDN + "/pizza/"
+	resp, err := client.Get(address)
 	if err != nil {
 		t.Fatalf("Failed to make request: %v", err)
 	}
@@ -47,5 +48,5 @@ func TestEndToEnd(t *testing.T) {
 		t.Errorf("Unexpected status code: got %v want %v", resp.StatusCode, http.StatusOK)
 	}
 
-	fmt.Printf("HLLO")
+	fmt.Printf("HLaO")
 }

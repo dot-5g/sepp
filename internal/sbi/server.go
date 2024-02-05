@@ -15,41 +15,30 @@ import (
 
 // dynamicProxyHandler creates a handler function that dynamically decides
 // the target URL based on the current state of seppContext.RemoteN32FQDN.
-func dynamicProxyHandler(seppContext *model.SEPPContext) http.HandlerFunc {
-	var mu sync.Mutex // Protects access to the reverseProxy to ensure thread safety
+func dynamicProxyHandler(seppContext *model.SEPPContext, outboundTLSConfig *tls.Config) http.HandlerFunc {
+	var mu sync.Mutex
 	var reverseProxy *httputil.ReverseProxy
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
 
-		if r.TLS == nil {
-			http.Error(w, "TLS is required", http.StatusBadRequest)
-			log.Println("SBI server - TLS is required")
-			return
-		}
-
-		if r.TLS.PeerCertificates == nil {
-			http.Error(w, "Client certificate is required", http.StatusBadRequest)
-			log.Println("SBI server - client certificate is required")
-			return
-		}
-
 		remoteURL := string(seppContext.RemoteN32FQDN)
 		if remoteURL == "" {
 			http.Error(w, "Remote SEPP not configured", http.StatusInternalServerError)
-			log.Println("SBI server - remote SEPP not configured")
 			return
 		}
 
-		if reverseProxy == nil || reverseProxy.Director == nil || r.URL.Host != remoteURL {
+		if reverseProxy == nil {
 			targetURL, err := url.Parse(remoteURL)
 			if err != nil {
 				http.Error(w, "Failed to parse target URL", http.StatusInternalServerError)
-				log.Printf("SBI server - failed to parse target URL: %v", err)
 				return
 			}
 			reverseProxy = httputil.NewSingleHostReverseProxy(targetURL)
+			reverseProxy.Transport = &http.Transport{
+				TLSClientConfig: outboundTLSConfig,
+			}
 			log.Printf("SBI server - forwarding requests to remote SEPP (%s)", remoteURL)
 		}
 
@@ -57,34 +46,48 @@ func dynamicProxyHandler(seppContext *model.SEPPContext) http.HandlerFunc {
 	}
 }
 
-func StartServer(address string, serverCertPath string, serverKeyPath string, caCertPath string, seppContext *model.SEPPContext) {
-	cert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyPath)
-	if err != nil {
-		log.Fatalf("failed to load server key pair: %v", err)
-	}
-
+func StartServer(address, serverCertPath, serverKeyPath, caCertPath, clientCertPath, clientKeyPath string, seppContext *model.SEPPContext) {
 	caCert, err := os.ReadFile(caCertPath)
 	if err != nil {
 		log.Fatalf("failed to read CA certificate: %v", err)
 	}
 	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		log.Fatal("failed to append CA certificate")
+	}
+
+	clientCert, err := tls.LoadX509KeyPair(clientCertPath, clientKeyPath)
+	if err != nil {
+		log.Fatalf("failed to load client certificate and key: %v", err)
+	}
+
+	outboundTLSConfig := &tls.Config{
+		RootCAs:      caCertPool,
+		Certificates: []tls.Certificate{clientCert},
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", dynamicProxyHandler(seppContext, outboundTLSConfig))
+
+	serverCert, err := tls.LoadX509KeyPair(serverCertPath, serverKeyPath)
+	if err != nil {
+		log.Fatalf("failed to load server key pair: %v", err)
+	}
 
 	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
+		Certificates: []tls.Certificate{serverCert},
 		ClientCAs:    caCertPool,
 		ClientAuth:   tls.RequireAndVerifyClientCert,
 	}
 
 	server := &http.Server{
 		Addr:      address,
+		Handler:   mux,
 		TLSConfig: tlsConfig,
 	}
 
-	http.HandleFunc("/", dynamicProxyHandler(seppContext))
-
 	log.Printf("SBI server - started listening on %s", address)
-	if err := server.ListenAndServeTLS(serverCertPath, serverKeyPath); err != http.ErrServerClosed {
+	if err := server.ListenAndServeTLS(serverCertPath, serverKeyPath); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
 	log.Println("SBI server - stopped")

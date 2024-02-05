@@ -15,10 +15,10 @@ import (
 func TestGivenSupportedCapabilityWhenHandlePostExchangeCapabilityThenReturns200(t *testing.T) {
 	localFQDN := "local-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalN32FQDN:       model.FQDN(localFQDN),
-		RemoteN32FQDN:      model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
@@ -62,10 +62,10 @@ func TestGivenSupportedCapabilityWhenHandlePostExchangeCapabilityThenRemoteFQDNI
 	localFQDN := "local-sepp.example.com"
 	remoteFQDN := "remote-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalN32FQDN:       model.FQDN(localFQDN),
-		RemoteN32FQDN:      model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
@@ -97,10 +97,10 @@ func TestGivenSupportedCapabilityWhenHandlePostExchangeCapabilityThenRemoteFQDNI
 func TestGivenUnsupportedCapabilityWhenHandlePostExchangeCapabilityThenReturns4xx(t *testing.T) {
 	localFQDN := "local-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalN32FQDN:       model.FQDN(localFQDN),
-		RemoteN32FQDN:      model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
 		Sender:                     "testSender",
@@ -127,10 +127,10 @@ func TestGivenUnsupportedCapabilityWhenHandlePostExchangeCapabilityThenReturns4x
 func TestGivenUnsupportedCapabilityWhenHandlePostExchangeCapabilityThenRemoteFQDNNotStored(t *testing.T) {
 	localFQDN := "local-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalN32FQDN:       model.FQDN(localFQDN),
-		RemoteN32FQDN:      model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
 		Sender:                     "testSender",
