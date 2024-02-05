@@ -1,0 +1,19 @@
+sepp:
+  securityCapability: "TLS"
+  local:
+    n32:
+      fqdn: "https://localhost:1233"
+      host: "localhost"
+      port: "1233"
+      tls:
+        cert: "e2etests/certs/n32Server.crt"
+        key: "e2etests/certs/n32Server.key"
+        ca: "e2etests/certs/ca.crt"
+    sbi:
+      fqdn: "local-sbi.example.com"
+      host: "localhost"
+      port: "1234"
+      tls:
+        cert: "e2etests/certs/sbiServer.crt"
+        key: "e2etests/certs/sbiServer.key"
+        ca: "e2etests/certs/ca.crt"

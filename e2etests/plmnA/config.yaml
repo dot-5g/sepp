@@ -1,0 +1,19 @@
+sepp:
+  securityCapability: "TLS"
+  local:
+    n32:
+      fqdn: "https://localhost:1233"
+      host: "localhost"
+      port: "1233"
+      tls:
+        cert: "/etc/sepp/certs/n32Server.crt"
+        key: "/etc/sepp/certs/n32Server.key"
+        ca: "/etc/sepp/certs/ca.crt"
+    sbi:
+      fqdn: "local-sbi.example.com"
+      host: "localhost"
+      port: "1234"
+      tls:
+        cert: "/etc/sepp/certs/sbiServer.crt"
+        key: "/etc/sepp/certs/sbiServer.key"
+        ca: "/etc/sepp/certs/ca.crt"
