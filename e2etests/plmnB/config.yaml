@@ -2,24 +2,24 @@ sepp:
   securityCapability: "TLS"
   local:
     n32:
-      fqdn: "https://0.0.0.0:1233"
-      host: "0.0.0.0"
+      fqdn: "https://sepp-plmn-b:1233"
+      host: "sepp-plmn-b"
       port: "1233"
       tls:
-        cert: "/etc/sepp/certs/n32Server.crt"
-        key: "/etc/sepp/certs/n32Server.key"
-        ca: "/etc/sepp/certs/ca.crt"
+        cert: "e2etests/plmnB/certs/n32Server.crt"
+        key: "e2etests/plmnB/certs/n32Server.key"
+        ca: "e2etests/plmnB/certs/ca.crt"
     sbi:
-      fqdn: "local-sbi.example.com"
-      host: "0.0.0.0"
+      fqdn: "https://sepp-plmn-b:1234"
+      host: "sepp-plmn-b"
       port: "1234"
       tls:
-        cert: "/etc/sepp/certs/sbiServer.crt"
-        key: "/etc/sepp/certs/sbiServer.key"
-        ca: "/etc/sepp/certs/ca.crt"
+        cert: "e2etests/plmnB/certs/sbiServer.crt"
+        key: "e2etests/plmnB/certs/sbiServer.key"
+        ca: "e2etests/plmnB/certs/ca.crt"
   remote:
-    url: "https://0.0.0.0:1231"
+    url: "https://sepp-plmn-a:1231"
     tls:
-      cert: "/etc/sepp/certs/client.crt"
-      key: "/etc/sepp/certs/client.key"
-      ca: "/etc/sepp/certs/ca.crt"
+      cert: "e2etests/plmnB/certs/client.crt"
+      key: "e2etests/plmnB/certs/client.key"
+      ca: "e2etests/plmnB/certs/ca.crt"

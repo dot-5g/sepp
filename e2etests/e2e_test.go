@@ -1,19 +1,18 @@
-package e2e_tests
+package main_test
 
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"net/http"
 	"os"
 	"testing"
 )
 
-var PLMNASBIFQDN = "https://127.0.0.1:1232"
+var PLMNASBIFQDN = "https://0.0.0.0:1232"
 var CertsPath = "client/certs/"
 
 func TestEndToEnd(t *testing.T) {
-	cert, err := tls.LoadX509KeyPair(CertsPath+"client.crt", CertsPath+"client.key")
+	clientCert, err := tls.LoadX509KeyPair(CertsPath+"client.crt", CertsPath+"client.key")
 	if err != nil {
 		t.Fatalf("Failed to load client certificate: %v", err)
 	}
@@ -27,7 +26,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
+		Certificates: []tls.Certificate{clientCert},
 		RootCAs:      caCertPool,
 	}
 
@@ -37,7 +36,7 @@ func TestEndToEnd(t *testing.T) {
 		},
 	}
 
-	address := PLMNASBIFQDN + "/pizza/"
+	address := PLMNASBIFQDN
 	resp, err := client.Get(address)
 	if err != nil {
 		t.Fatalf("Failed to make request: %v", err)
@@ -48,5 +47,4 @@ func TestEndToEnd(t *testing.T) {
 		t.Errorf("Unexpected status code: got %v want %v", resp.StatusCode, http.StatusOK)
 	}
 
-	fmt.Printf("HLaO")
 }

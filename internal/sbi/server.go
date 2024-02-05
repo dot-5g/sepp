@@ -40,6 +40,8 @@ func dynamicProxyHandler(seppContext *model.SEPPContext, outboundTLSConfig *tls.
 				TLSClientConfig: outboundTLSConfig,
 			}
 			log.Printf("SBI server - forwarding requests to remote SEPP (%s)", remoteURL)
+		} else {
+			log.Printf("SBI server - reusing existing reverse proxy to remote SEPP (%s)", remoteURL)
 		}
 
 		reverseProxy.ServeHTTP(w, r)
