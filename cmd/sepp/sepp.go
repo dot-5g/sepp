@@ -20,18 +20,22 @@ func init() {
 func main() {
 	flag.Parse()
 	var wg sync.WaitGroup
-	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalFQDN:          model.FQDN("local-sepp.example.com"),
-		RemoteFQDN:         model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
-	}
 
 	conf, err := config.LoadConfiguration(configFilePath)
 	if err != nil {
 		log.Fatalf("failed to read config file: %s", err)
 	}
+	seppContext := &model.SEPPContext{
+		Mu:                 sync.Mutex{},
+		LocalN32FQDN:       model.FQDN(conf.SEPP.Local.N32.FQDN),
+		RemoteN32FQDN:      model.FQDN(""), // Initially empty
+		SecurityCapability: model.SecurityCapability("TLS"),
+	}
+
 	startN32Server(&wg, conf.SEPP.Local.N32, seppContext)
+	startSBIServer(&wg, conf.SEPP.Local.SBI, seppContext) // Always start SBI server
+
+	// Capability exchange and updating SEPP context happens here
 	remoteURL := conf.SEPP.Remote.URL
 	if remoteURL != "" {
 		secNegotiateRspData, err := exchangeCapability(remoteURL, conf.SEPP.Local.N32.FQDN, conf.SEPP.SecurityCapability, conf.SEPP.Remote.TLS)
@@ -39,10 +43,10 @@ func main() {
 			log.Fatalf("failed to exchange capability: %s", err)
 		}
 		seppContext.Mu.Lock()
-		seppContext.RemoteFQDN = model.FQDN(secNegotiateRspData.Sender)
+		seppContext.RemoteN32FQDN = model.FQDN(secNegotiateRspData.Sender)
 		seppContext.Mu.Unlock()
 	}
-	startSBIServer(&wg, remoteURL, conf.SEPP.Local.SBI)
+
 	wg.Wait()
 }
 
@@ -54,11 +58,11 @@ func startN32Server(wg *sync.WaitGroup, n32Config config.N32, seppContext *model
 	}()
 }
 
-func startSBIServer(wg *sync.WaitGroup, remoteURL string, sbiConfig config.SBI) {
+func startSBIServer(wg *sync.WaitGroup, sbiConfig config.SBI, seppContext *model.SEPPContext) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		sbi.StartServer(remoteURL, sbiConfig.GetAddress(), sbiConfig.TLS)
+		sbi.StartServer(sbiConfig.GetAddress(), sbiConfig.TLS.Cert, sbiConfig.TLS.Key, sbiConfig.TLS.CA, seppContext)
 	}()
 }
 
@@ -77,6 +81,5 @@ func exchangeCapability(remoteURL string, fqdn string, securityCapability string
 		log.Printf("failed to exchange capability: expected %s, got %s", model.TLS, secNegotiateRspData)
 		return secNegotiateRspData, err
 	}
-	log.Printf("successfully exchanged capability %s with remote SEPP %s", secNegotiateRspData.SelectedSecCapability, remoteURL)
 	return secNegotiateRspData, nil
 }

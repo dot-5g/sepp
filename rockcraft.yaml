@@ -11,6 +11,12 @@ license: Apache-2.0
 platforms:
   amd64:
 
+services:
+  sepp:
+    command: sepp -config=/etc/sepp/config.yaml
+    override: replace
+    startup: enabled
+
 parts:
   sepp:
     source: .

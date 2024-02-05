@@ -23,9 +23,9 @@ func loadClientCAs(caCertPath string) (*x509.CertPool, error) {
 
 func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("request received: %s %s", r.Method, r.URL.Path)
+		log.Printf("N32 server - request received: %s %s", r.Method, r.URL.Path)
 		next(w, r)
-		log.Printf("request handled: %s %s", r.Method, r.URL.Path)
+		log.Printf("N32 server - request handled: %s %s", r.Method, r.URL.Path)
 	}
 }
 
@@ -45,9 +45,9 @@ func StartServer(address string, serverCertPath string, serverKeyPath string, ca
 		Addr:      address,
 		TLSConfig: tlsConfig,
 	}
-	log.Printf("starting N32 server on %s", address)
+	log.Printf("N32 server - starting listening on %s", address)
 	if err := server.ListenAndServeTLS(serverCertPath, serverKeyPath); err != http.ErrServerClosed {
 		log.Fatalf("failed to start server: %s", err)
 	}
-	log.Println("N32 server stopped")
+	log.Println("N32 server - stopped")
 }

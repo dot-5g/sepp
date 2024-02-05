@@ -1,0 +1,49 @@
+name: Integration tests
+
+on:
+    workflow_call:
+
+jobs:
+    integration-tests:
+        runs-on: ubuntu-22.04
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Download rock artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: rock
+
+        - name: Import rock artifact
+          run: |
+            image_name="$(yq '.name' rockcraft.yaml)"
+            echo "image_name=${image_name}" >> $GITHUB_ENV
+            version="$(yq '.version' rockcraft.yaml)"
+            echo "version=${version}" >> $GITHUB_ENV
+            rock_file=$(ls *.rock | tail -n 1)
+            sudo skopeo \
+              --insecure-policy \
+              copy \
+              oci-archive:"${rock_file}" \
+              docker-daemon:"${image_name}-rock:test"
+
+        - name: Run PLMN A
+          run: |
+            docker run \
+              -v ${{ github.workspace }}/e2etests/plmnA/config.yaml:/etc/sepp/config.yaml \
+              -v ${{ github.workspace }}/e2etests/plmnA/certs/:/etc/sepp/certs/ \
+              -d \
+              ${image_name}-rock:test
+        
+        - name: Run PLMN B
+          run: |
+            docker run \
+              -v ${{ github.workspace }}/e2etests/plmnB/config.yaml:/etc/sepp/config.yaml \
+              -v ${{ github.workspace }}/e2etests/plmnB/certs/:/etc/sepp/certs/ \
+              -d \
+              ${image_name}-rock:test
+        
+        - name: Run tests
+          run: |
+            go test -v ./e2etests

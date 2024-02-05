@@ -71,10 +71,21 @@ jobs:
           go-version-file: "go.mod"
 
       - name: Unit tests
-        run: go test -cover ./...
+        run: go test -cover ./... -skip TestEndToEnd
 
   rock-build:
+    needs: 
+      - build
+      - go-vet
+      - staticcheck
+      - lint
+      - unit-tests
     uses: ./.github/workflows/build-rock.yaml
+  
+  integration-tests:
+    needs:
+      - rock-build
+    uses: ./.github/workflows/integration-tests.yaml
 
   rock-scan:
     if: github.ref_name == 'main'
