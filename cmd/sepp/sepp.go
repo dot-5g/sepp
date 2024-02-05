@@ -31,7 +31,6 @@ func main() {
 		RemoteN32FQDN:               model.FQDN(""),
 		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
-	log.Printf("Starting SEPP")
 	startN32Server(&wg, conf.SEPP.Local.N32, seppContext)
 	startSBIServer(&wg, conf.SEPP.Local.SBI, conf.SEPP.Remote.TLS, seppContext)
 	exchangeCapability(conf.SEPP.Remote.URL, conf.SEPP.Local.N32.FQDN, conf.SEPP.SecurityCapability, conf.SEPP.Remote.TLS, seppContext)
