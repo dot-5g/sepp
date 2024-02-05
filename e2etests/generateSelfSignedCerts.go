@@ -6,34 +6,49 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"flag"
 	"math/big"
 	"net"
 	"os"
 	"time"
 )
 
-var certsPath string
-
-func init() {
-	flag.StringVar(&certsPath, "path", "certs/", "Path where certificates will be stored")
-}
+const PLMNACertsPath = "e2etests/plmnA/certs/"
+const PLMNBCertsPath = "e2etests/plmnB/certs/"
+const ClientCertsPath = "e2etests/client/certs/"
 
 func main() {
+	CAHosts := []string{"localhost", "127.0.0.1", "0.0.0.0"}
+	SEPPAHosts := []string{"localhost", "127.0.0.1", "0.0.0.0", "sepp-plmn-a"}
+	SEPPBHosts := []string{"localhost", "127.0.0.1", "0.0.0.0", "sepp-plmn-b"}
+	clientHosts := []string{"localhost", "127.0.0.1", "0.0.0.0"}
+	caCert, caKey := generateCACerts("CA", CAHosts)
+	generateSEPPCerts(caCert, caKey, SEPPAHosts, PLMNACertsPath)
+	generateSEPPCerts(caCert, caKey, SEPPBHosts, PLMNBCertsPath)
+	generateClientCerts(caCert, caKey, clientHosts, ClientCertsPath)
+}
 
-	flag.Parse()
+func generateCACerts(commonName string, hosts []string) (*x509.Certificate, *rsa.PrivateKey) {
+	caCert, caKey := generateCert(commonName, nil, nil, true, hosts)
 
-	hosts := []string{"localhost", "127.0.0.1", "0.0.0.0", "local-sepp.example.com", "local-sbi.example.com"}
-
-	caCert, caKey := generateCert("CA", nil, nil, true, hosts)
-
-	err := writeCertAndKey(certsPath+"ca.crt", caCert, certsPath+"ca.key", caKey)
+	err := writeCert(PLMNACertsPath+"ca.crt", caCert)
+	if err != nil {
+		panic(err)
+	}
+	err = writeCert(PLMNBCertsPath+"ca.crt", caCert)
+	if err != nil {
+		panic(err)
+	}
+	err = writeCert(ClientCertsPath+"ca.crt", caCert)
 	if err != nil {
 		panic(err)
 	}
 
+	return caCert, caKey
+}
+
+func generateSEPPCerts(caCert *x509.Certificate, caKey *rsa.PrivateKey, hosts []string, certsPath string) {
 	n32Cert, n32Key := generateCert("N32 Server", caCert, caKey, false, hosts)
-	err = writeCertAndKey(certsPath+"n32Server.crt", n32Cert, certsPath+"n32Server.key", n32Key)
+	err := writeCertAndKey(certsPath+"n32Server.crt", n32Cert, certsPath+"n32Server.key", n32Key)
 	if err != nil {
 		panic(err)
 	}
@@ -49,6 +64,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func generateClientCerts(caCert *x509.Certificate, caKey *rsa.PrivateKey, hosts []string, certsPath string) {
+	clientCert, clientKey := generateCert("Client", caCert, caKey, false, hosts)
+	err := writeCertAndKey(certsPath+"client.crt", clientCert, certsPath+"client.key", clientKey)
+	if err != nil {
+		panic(err)
+	}
 
 }
 
@@ -57,9 +80,13 @@ func generateCert(commonName string, caCert *x509.Certificate, caKey *rsa.Privat
 	if err != nil {
 		panic(err)
 	}
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		panic(err)
+	}
 
 	template := x509.Certificate{
-		SerialNumber: big.NewInt(1),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			CommonName: commonName,
 		},
@@ -123,6 +150,21 @@ func writeCertAndKey(certPath string, cert *x509.Certificate, keyPath string, ke
 	}
 
 	keyOut.Close()
+
+	return nil
+}
+
+func writeCert(certPath string, cert *x509.Certificate) error {
+	certOut, err := os.Create(certPath)
+	if err != nil {
+		panic(err)
+	}
+	err = pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
+	if err != nil {
+		return err
+	}
+
+	certOut.Close()
 
 	return nil
 }

@@ -15,10 +15,10 @@ import (
 func TestGivenSupportedCapabilityWhenHandlePostExchangeCapabilityThenReturns200(t *testing.T) {
 	localFQDN := "local-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalFQDN:          model.FQDN(localFQDN),
-		RemoteFQDN:         model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
@@ -62,10 +62,10 @@ func TestGivenSupportedCapabilityWhenHandlePostExchangeCapabilityThenRemoteFQDNI
 	localFQDN := "local-sepp.example.com"
 	remoteFQDN := "remote-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalFQDN:          model.FQDN(localFQDN),
-		RemoteFQDN:         model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
@@ -89,18 +89,18 @@ func TestGivenSupportedCapabilityWhenHandlePostExchangeCapabilityThenRemoteFQDNI
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	if seppContext.RemoteFQDN != model.FQDN(remoteFQDN) {
-		t.Errorf("RemoteFQDN not stored: got %v want %v", seppContext.RemoteFQDN, remoteFQDN)
+	if seppContext.RemoteN32FQDN != model.FQDN(remoteFQDN) {
+		t.Errorf("RemoteFQDN not stored: got %v want %v", seppContext.RemoteN32FQDN, remoteFQDN)
 	}
 }
 
 func TestGivenUnsupportedCapabilityWhenHandlePostExchangeCapabilityThenReturns4xx(t *testing.T) {
 	localFQDN := "local-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalFQDN:          model.FQDN(localFQDN),
-		RemoteFQDN:         model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
 		Sender:                     "testSender",
@@ -127,10 +127,10 @@ func TestGivenUnsupportedCapabilityWhenHandlePostExchangeCapabilityThenReturns4x
 func TestGivenUnsupportedCapabilityWhenHandlePostExchangeCapabilityThenRemoteFQDNNotStored(t *testing.T) {
 	localFQDN := "local-sepp.example.com"
 	seppContext := &model.SEPPContext{
-		Mu:                 sync.Mutex{},
-		LocalFQDN:          model.FQDN(localFQDN),
-		RemoteFQDN:         model.FQDN(""),
-		SecurityCapability: model.SecurityCapability("TLS"),
+		Mu:                          sync.Mutex{},
+		LocalN32FQDN:                model.FQDN(localFQDN),
+		RemoteN32FQDN:               model.FQDN(""),
+		SupportedSecurityCapability: model.SecurityCapability("TLS"),
 	}
 	reqBody, err := json.Marshal(n32.SecNegotiateReqData{
 		Sender:                     "testSender",
@@ -153,7 +153,7 @@ func TestGivenUnsupportedCapabilityWhenHandlePostExchangeCapabilityThenRemoteFQD
 		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 	}
 
-	if seppContext.RemoteFQDN != model.FQDN("") {
-		t.Errorf("RemoteFQDN stored: got %v want %v", seppContext.RemoteFQDN, "")
+	if seppContext.RemoteN32FQDN != model.FQDN("") {
+		t.Errorf("RemoteFQDN stored: got %v want %v", seppContext.RemoteN32FQDN, "")
 	}
 }

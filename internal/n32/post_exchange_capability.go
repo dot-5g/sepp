@@ -24,32 +24,32 @@ func HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request, seppCo
 
 	if err := json.NewDecoder(r.Body).Decode(reqData); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		log.Printf("Invalid request body: %v", err)
+		log.Printf("N32 server - invalid request body: %v", err)
 		return
 	}
 
 	if reqData.Sender == "" {
 		http.Error(w, "Sender is required", http.StatusBadRequest)
-		log.Printf("Sender is required")
+		log.Printf("N32 server - sender is required")
 		return
 	}
 
 	if len(reqData.SupportedSecCapabilityList) == 0 {
 		http.Error(w, "SupportedSecCapabilityList is required", http.StatusBadRequest)
-		log.Printf("SupportedSecCapabilityList is required")
+		log.Printf("N32 server - supportedSecCapabilityList is required")
 		return
 	}
 
-	containsSupportedCapability := slices.Contains(reqData.SupportedSecCapabilityList, seppContext.SecurityCapability)
+	containsSupportedCapability := slices.Contains(reqData.SupportedSecCapabilityList, seppContext.SupportedSecurityCapability)
 	if !containsSupportedCapability {
 		http.Error(w, "Bad SecurityCapability", http.StatusBadRequest)
-		log.Printf("Bad SecurityCapability - Only %s is supported", seppContext.SecurityCapability)
+		log.Printf("N32 server - bad SecurityCapability - Only %s is supported", seppContext.SupportedSecurityCapability)
 		return
 	}
 
 	rspData := SecNegotiateRspData{
-		Sender:                seppContext.LocalFQDN,
-		SelectedSecCapability: seppContext.SecurityCapability,
+		Sender:                seppContext.LocalN32FQDN,
+		SelectedSecCapability: seppContext.SupportedSecurityCapability,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -57,11 +57,13 @@ func HandlePostExchangeCapability(w http.ResponseWriter, r *http.Request, seppCo
 	err := json.NewEncoder(w).Encode(rspData)
 	if err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		log.Printf("Failed to encode response: %v", err)
+		log.Printf("N32 server - failed to encode response: %v", err)
 		return
 	}
 
 	seppContext.Mu.Lock()
-	seppContext.RemoteFQDN = reqData.Sender
+	seppContext.RemoteN32FQDN = reqData.Sender
+	seppContext.SelectedSecurityCapability = rspData.SelectedSecCapability
 	seppContext.Mu.Unlock()
+	log.Printf("N32 server - successfully exchanged capability %s with remote SEPP %s", rspData.SelectedSecCapability, reqData.Sender)
 }

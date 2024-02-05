@@ -1,0 +1,70 @@
+name: Integration tests
+
+on:
+    workflow_call:
+
+jobs:
+    integration-tests:
+        runs-on: ubuntu-22.04
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Download rock artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: rock
+
+        - name: Import rock artifact
+          run: |
+            image_name="$(yq '.name' rockcraft.yaml)"
+            echo "image_name=${image_name}" >> $GITHUB_ENV
+            version="$(yq '.version' rockcraft.yaml)"
+            echo "version=${version}" >> $GITHUB_ENV
+            rock_file=$(ls *.rock | tail -n 1)
+            sudo skopeo \
+              --insecure-policy \
+              copy \
+              oci-archive:"${rock_file}" \
+              docker-daemon:"${image_name}-rock:test"
+
+        - name: Setup Go
+          uses: actions/setup-go@v5
+          with:
+            go-version-file: "go.mod"
+
+        - name: Generate TLS Certificates
+          run: |
+            go run e2etests/generateSelfSignedCerts.go
+        
+        - name: Create network
+          run: |
+            docker network create n32
+
+        - name: Run PLMN A
+          run: |
+            docker run \
+              --name sepp-plmn-a \
+              -p 1231:1231 \
+              -p 1232:1232 \
+              -v ${{ github.workspace }}/e2etests/plmnA/config.yaml:/etc/sepp/config.yaml \
+              -v ${{ github.workspace }}/e2etests/plmnA/certs/:/e2etests/plmnA/certs/ \
+              --network n32 \
+              -d \
+              ${image_name}-rock:test
+        
+        - name: Run PLMN B
+          run: |
+            docker run \
+              --name sepp-plmn-b \
+              -p 1233:1233 \
+              -p 1234:1234 \
+              -v ${{ github.workspace }}/e2etests/plmnB/config.yaml:/etc/sepp/config.yaml \
+              -v ${{ github.workspace }}/e2etests/plmnB/certs/:/e2etests/plmnB/certs/ \
+              --network n32 \
+              -d \
+              ${image_name}-rock:test
+        
+        - name: Run tests
+          run: |
+            go test -v ./e2etests

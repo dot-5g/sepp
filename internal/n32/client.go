@@ -18,12 +18,12 @@ type Client struct {
 func NewClient(certPath string, keyPath string, caCertPath string) *Client {
 	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
-		log.Fatalf("Failed to load client certificate: %v", err)
+		log.Fatalf("N32 client - failed to load client certificate: %v", err)
 	}
 
 	caCert, err := os.ReadFile(caCertPath)
 	if err != nil {
-		log.Fatalf("Failed to read CA certificate: %v", err)
+		log.Fatalf("N32 client - failed to read CA certificate: %v", err)
 	}
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
@@ -68,6 +68,7 @@ func (c *Client) POSTExchangeCapability(remoteURL string, secNegotiateReqData Se
 	if err != nil {
 		return secNegotiateRspData, err
 	}
+	log.Printf("n32 client - successfully exchanged capability %s with remote SEPP %s", secNegotiateRspData.SelectedSecCapability, remoteURL)
 
 	return secNegotiateRspData, nil
 }
