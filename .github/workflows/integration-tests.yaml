@@ -31,6 +31,8 @@ jobs:
         - name: Run PLMN A
           run: |
             docker run \
+              -p 1231:1231 \
+              -p 1232:1232 \
               -v ${{ github.workspace }}/e2etests/plmnA/config.yaml:/etc/sepp/config.yaml \
               -v ${{ github.workspace }}/e2etests/plmnA/certs/:/etc/sepp/certs/ \
               -d \
@@ -39,6 +41,8 @@ jobs:
         - name: Run PLMN B
           run: |
             docker run \
+              -p 1233:1233 \
+              -p 1234:1234 \
               -v ${{ github.workspace }}/e2etests/plmnB/config.yaml:/etc/sepp/config.yaml \
               -v ${{ github.workspace }}/e2etests/plmnB/certs/:/etc/sepp/certs/ \
               -d \

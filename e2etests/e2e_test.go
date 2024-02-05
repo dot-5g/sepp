@@ -3,12 +3,13 @@ package e2e_tests
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
 )
 
-var PLMNAFQDN = "https://127.0.0.1:1234"
+var PLMNASBIFQDN = "https://127.0.0.1:1232"
 var CertsPath = "client/certs/"
 
 func TestEndToEnd(t *testing.T) {
@@ -36,7 +37,7 @@ func TestEndToEnd(t *testing.T) {
 		},
 	}
 
-	resp, err := client.Get(PLMNAFQDN)
+	resp, err := client.Get(PLMNASBIFQDN)
 	if err != nil {
 		t.Fatalf("Failed to make request: %v", err)
 	}
@@ -46,4 +47,5 @@ func TestEndToEnd(t *testing.T) {
 		t.Errorf("Unexpected status code: got %v want %v", resp.StatusCode, http.StatusOK)
 	}
 
+	fmt.Printf("HLLO")
 }
