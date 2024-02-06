@@ -14,19 +14,18 @@ import (
 	"e2etests/docker"
 )
 
-const ProjectPath = "/home/guillaume/code/sepp/e2etests/"
 const PLMNASBIFQDN = "https://0.0.0.0:1232"
-const PLMNACertsPath = ProjectPath + "plmnA/certs/"
-const PLMNAConfigPath = ProjectPath + "plmnA/config.yaml"
-const PLMNBCertsPath = ProjectPath + "plmnB/certs/"
-const PLMNBConfigPath = ProjectPath + "plmnB/config.yaml"
-const ClientCertsPath = ProjectPath + "client/certs/"
 const PLMNASEPPHostname = "sepp-plmn-a"
 const PLMNBSEPPHostname = "sepp-plmn-b"
 const DockerNetworkName = "n32"
 
-func Setup(seppAHostname string, seppBHostname string, dockerNetworkName string) {
+func Setup(projectPath string, seppAHostname string, seppBHostname string, dockerNetworkName string) {
 	var err error
+	PLMNACertsPath := projectPath + "/plmnA/certs/"
+	PLMNAConfigPath := projectPath + "/plmnA/config.yaml"
+	PLMNBCertsPath := projectPath + "/plmnB/certs/"
+	PLMNBConfigPath := projectPath + "/plmnB/config.yaml"
+	ClientCertsPath := projectPath + "/client/certs/"
 	certificates.GenerateCertificates(PLMNACertsPath, seppAHostname, PLMNBCertsPath, seppBHostname, ClientCertsPath)
 	if err := docker.CreateNetwork(dockerNetworkName); err != nil {
 		log.Fatalf("Failed to create Docker network: %v", err)
@@ -70,12 +69,12 @@ func waitForService(client *http.Client, url string, maxRetries int) error {
 	return fmt.Errorf("service not available at %s", url)
 }
 
-func getClient(caCertPath string) (*http.Client, error) {
-	clientCert, err := tls.LoadX509KeyPair(ClientCertsPath+"client.crt", ClientCertsPath+"client.key")
+func getClient(caCertPath string, clientCertPath string, clientKeyPath string) (*http.Client, error) {
+	clientCert, err := tls.LoadX509KeyPair(clientCertPath, clientKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load client certificate: %v", err)
 	}
-	caCert, err := os.ReadFile(ClientCertsPath + "ca.crt")
+	caCert, err := os.ReadFile(caCertPath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read CA certificate: %v", err)
 	}
@@ -96,9 +95,13 @@ func getClient(caCertPath string) (*http.Client, error) {
 }
 
 func TestEndToEnd(t *testing.T) {
-	Setup(PLMNASEPPHostname, PLMNBSEPPHostname, DockerNetworkName)
+	projectPath, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error getting current directory: %v", err)
+	}
+	Setup(projectPath, PLMNASEPPHostname, PLMNBSEPPHostname, DockerNetworkName)
 	defer Cleanup(PLMNASEPPHostname, PLMNBSEPPHostname, DockerNetworkName)
-	client, err := getClient(PLMNACertsPath + "ca.crt")
+	client, err := getClient(projectPath+"/client/certs/ca.crt", projectPath+"/client/certs/client.crt", projectPath+"/client/certs/client.key")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
