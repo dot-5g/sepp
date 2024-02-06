@@ -35,4 +35,5 @@ jobs:
 
         - name: Run tests
           run: |
-            go test -v ./e2etests
+            cd e2etests/
+            go test -v e2e_test.go
