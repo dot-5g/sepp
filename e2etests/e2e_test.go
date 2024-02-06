@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dot-5g/sepp/e2etests/certificates"
-	"github.com/dot-5g/sepp/e2etests/docker"
+	"e2etests/certificates"
+	"e2etests/docker"
 )
 
 const ProjectPath = "/home/guillaume/code/sepp/e2etests/"

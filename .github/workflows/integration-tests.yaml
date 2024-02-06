@@ -31,7 +31,7 @@ jobs:
         - name: Setup Go
           uses: actions/setup-go@v5
           with:
-            go-version-file: "go.mod"
+            go-version-file: "e2etests/go.mod"
 
         - name: Run tests
           run: |
