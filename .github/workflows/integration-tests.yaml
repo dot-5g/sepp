@@ -31,40 +31,9 @@ jobs:
         - name: Setup Go
           uses: actions/setup-go@v5
           with:
-            go-version-file: "go.mod"
+            go-version-file: "e2etests/go.mod"
 
-        - name: Generate TLS Certificates
-          run: |
-            go run e2etests/generateSelfSignedCerts.go
-        
-        - name: Create network
-          run: |
-            docker network create n32
-
-        - name: Run PLMN A
-          run: |
-            docker run \
-              --name sepp-plmn-a \
-              -p 1231:1231 \
-              -p 1232:1232 \
-              -v ${{ github.workspace }}/e2etests/plmnA/config.yaml:/etc/sepp/config.yaml \
-              -v ${{ github.workspace }}/e2etests/plmnA/certs/:/e2etests/plmnA/certs/ \
-              --network n32 \
-              -d \
-              ${image_name}-rock:test
-        
-        - name: Run PLMN B
-          run: |
-            docker run \
-              --name sepp-plmn-b \
-              -p 1233:1233 \
-              -p 1234:1234 \
-              -v ${{ github.workspace }}/e2etests/plmnB/config.yaml:/etc/sepp/config.yaml \
-              -v ${{ github.workspace }}/e2etests/plmnB/certs/:/e2etests/plmnB/certs/ \
-              --network n32 \
-              -d \
-              ${image_name}-rock:test
-        
         - name: Run tests
           run: |
-            go test -v ./e2etests
+            cd e2etests/
+            go test -v e2e_test.go

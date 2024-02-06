@@ -1,4 +1,4 @@
-package main
+package certificates
 
 import (
 	"crypto/rand"
@@ -12,38 +12,29 @@ import (
 	"time"
 )
 
-const PLMNACertsPath = "e2etests/plmnA/certs/"
-const PLMNBCertsPath = "e2etests/plmnB/certs/"
-const ClientCertsPath = "e2etests/client/certs/"
-
-func main() {
+func GenerateCertificates(plmnACertsPath string, plmnAHostname string, plmnBCertsPath string, plmnBHostname string, clientCertsPath string) {
 	CAHosts := []string{"localhost", "127.0.0.1", "0.0.0.0"}
-	SEPPAHosts := []string{"localhost", "127.0.0.1", "0.0.0.0", "sepp-plmn-a"}
-	SEPPBHosts := []string{"localhost", "127.0.0.1", "0.0.0.0", "sepp-plmn-b"}
+	SEPPAHosts := []string{"localhost", "127.0.0.1", "0.0.0.0", plmnAHostname}
+	SEPPBHosts := []string{"localhost", "127.0.0.1", "0.0.0.0", plmnBHostname}
 	clientHosts := []string{"localhost", "127.0.0.1", "0.0.0.0"}
-	caCert, caKey := generateCACerts("CA", CAHosts)
-	generateSEPPCerts(caCert, caKey, SEPPAHosts, PLMNACertsPath)
-	generateSEPPCerts(caCert, caKey, SEPPBHosts, PLMNBCertsPath)
-	generateClientCerts(caCert, caKey, clientHosts, ClientCertsPath)
-}
+	caCert, caKey := generateCert("CA", nil, nil, true, CAHosts)
 
-func generateCACerts(commonName string, hosts []string) (*x509.Certificate, *rsa.PrivateKey) {
-	caCert, caKey := generateCert(commonName, nil, nil, true, hosts)
-
-	err := writeCert(PLMNACertsPath+"ca.crt", caCert)
+	err := writeCert(plmnACertsPath+"ca.crt", caCert)
 	if err != nil {
 		panic(err)
 	}
-	err = writeCert(PLMNBCertsPath+"ca.crt", caCert)
+	err = writeCert(plmnBCertsPath+"ca.crt", caCert)
 	if err != nil {
 		panic(err)
 	}
-	err = writeCert(ClientCertsPath+"ca.crt", caCert)
+	err = writeCert(clientCertsPath+"ca.crt", caCert)
 	if err != nil {
 		panic(err)
 	}
 
-	return caCert, caKey
+	generateSEPPCerts(caCert, caKey, SEPPAHosts, plmnACertsPath)
+	generateSEPPCerts(caCert, caKey, SEPPBHosts, plmnBCertsPath)
+	generateClientCerts(caCert, caKey, clientHosts, clientCertsPath)
 }
 
 func generateSEPPCerts(caCert *x509.Certificate, caKey *rsa.PrivateKey, hosts []string, certsPath string) {

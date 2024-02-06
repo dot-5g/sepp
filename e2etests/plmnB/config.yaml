@@ -6,20 +6,20 @@ sepp:
       host: "sepp-plmn-b"
       port: "1233"
       tls:
-        cert: "e2etests/plmnB/certs/n32Server.crt"
-        key: "e2etests/plmnB/certs/n32Server.key"
-        ca: "e2etests/plmnB/certs/ca.crt"
+        cert: "e2etests/certs/n32Server.crt"
+        key: "e2etests/certs/n32Server.key"
+        ca: "e2etests/certs/ca.crt"
     sbi:
       fqdn: "https://sepp-plmn-b:1234"
       host: "sepp-plmn-b"
       port: "1234"
       tls:
-        cert: "e2etests/plmnB/certs/sbiServer.crt"
-        key: "e2etests/plmnB/certs/sbiServer.key"
-        ca: "e2etests/plmnB/certs/ca.crt"
+        cert: "e2etests/certs/sbiServer.crt"
+        key: "e2etests/certs/sbiServer.key"
+        ca: "e2etests/certs/ca.crt"
   remote:
     url: "https://sepp-plmn-a:1231"
     tls:
-      cert: "e2etests/plmnB/certs/client.crt"
-      key: "e2etests/plmnB/certs/client.key"
-      ca: "e2etests/plmnB/certs/ca.crt"
+      cert: "e2etests/certs/client.crt"
+      key: "e2etests/certs/client.key"
+      ca: "e2etests/certs/ca.crt"
