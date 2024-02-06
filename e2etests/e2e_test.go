@@ -1,4 +1,4 @@
-package test
+package e2etests
 
 import (
 	"crypto/tls"
@@ -14,10 +14,13 @@ import (
 	"github.com/dot-5g/sepp/e2etests/docker"
 )
 
+const ProjectPath = "/home/guillaume/code/sepp/e2etests/"
 const PLMNASBIFQDN = "https://0.0.0.0:1232"
-const PLMNACertsPath = "plmnA/certs/"
-const PLMNBCertsPath = "plmnB/certs/"
-const ClientCertsPath = "client/certs/"
+const PLMNACertsPath = ProjectPath + "plmnA/certs/"
+const PLMNAConfigPath = ProjectPath + "plmnA/config.yaml"
+const PLMNBCertsPath = ProjectPath + "plmnB/certs/"
+const PLMNBConfigPath = ProjectPath + "plmnB/config.yaml"
+const ClientCertsPath = ProjectPath + "client/certs/"
 const PLMNASEPPHostname = "sepp-plmn-a"
 const PLMNBSEPPHostname = "sepp-plmn-b"
 const DockerNetworkName = "n32"
@@ -28,23 +31,32 @@ func Setup(seppAHostname string, seppBHostname string, dockerNetworkName string)
 	if err := docker.CreateNetwork(dockerNetworkName); err != nil {
 		log.Fatalf("Failed to create Docker network: %v", err)
 	}
-	if err = docker.RunContainer(seppAHostname, dockerNetworkName, "sepp:0.1", "/home/guillaume/code/sepp/e2etests/plmnA/config.yaml", "/home/guillaume/code/sepp/e2etests/plmnA/certs/", map[string]string{"1231": "1231", "1232": "1232"}); err != nil {
+	if err = docker.RunContainer(seppAHostname, dockerNetworkName, "sepp:0.1", PLMNAConfigPath, PLMNACertsPath, map[string]string{"1231": "1231", "1232": "1232"}); err != nil {
 		log.Fatalf("Failed to run PLMN A container: %v", err)
 	}
-	if err = docker.RunContainer(seppBHostname, dockerNetworkName, "sepp:0.1", "/home/guillaume/code/sepp/e2etests/plmnB/config.yaml", "/home/guillaume/code/sepp/e2etests/plmnB/certs/", map[string]string{"1233": "1233", "1234": "1234"}); err != nil {
+	if err = docker.RunContainer(seppBHostname, dockerNetworkName, "sepp:0.1", PLMNBConfigPath, PLMNBCertsPath, map[string]string{"1233": "1233", "1234": "1234"}); err != nil {
 		log.Fatalf("Failed to run PLMN B container: %v", err)
 	}
 }
 
 func Cleanup(seppAID string, seppBID string, networkName string) {
-	docker.StopAndRemoveContainer(seppAID)
-	docker.StopAndRemoveContainer(seppBID)
-	docker.RemoveNetwork(networkName)
+	err := docker.StopAndRemoveContainer(seppAID)
+	if err != nil {
+		log.Printf("Failed to stop and remove container %s: %v", seppAID, err)
+	}
+	err = docker.StopAndRemoveContainer(seppBID)
+	if err != nil {
+		log.Printf("Failed to stop and remove container %s: %v", seppBID, err)
+	}
+	err = docker.RemoveNetwork(networkName)
+	if err != nil {
+		log.Printf("Failed to remove network %s: %v", networkName, err)
+	}
 }
 
-func waitForService(url string, maxRetries int) error {
+func waitForService(client *http.Client, url string, maxRetries int) error {
 	for i := 0; i < maxRetries; i++ {
-		resp, err := http.Get(url)
+		resp, err := client.Get(url)
 		if err == nil {
 			resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {
@@ -58,20 +70,18 @@ func waitForService(url string, maxRetries int) error {
 	return fmt.Errorf("service not available at %s", url)
 }
 
-func TestEndToEnd(t *testing.T) {
-	Setup(PLMNASEPPHostname, PLMNBSEPPHostname, DockerNetworkName)
-	defer Cleanup(PLMNASEPPHostname, PLMNBSEPPHostname, DockerNetworkName)
+func getClient(caCertPath string) (*http.Client, error) {
 	clientCert, err := tls.LoadX509KeyPair(ClientCertsPath+"client.crt", ClientCertsPath+"client.key")
 	if err != nil {
-		t.Fatalf("Failed to load client certificate: %v", err)
+		return nil, fmt.Errorf("Failed to load client certificate: %v", err)
 	}
 	caCert, err := os.ReadFile(ClientCertsPath + "ca.crt")
 	if err != nil {
-		t.Fatalf("Failed to read CA certificate: %v", err)
+		return nil, fmt.Errorf("Failed to read CA certificate: %v", err)
 	}
 	caCertPool := x509.NewCertPool()
 	if !caCertPool.AppendCertsFromPEM(caCert) {
-		t.Fatal("Failed to append CA certificate")
+		return nil, fmt.Errorf("Failed to append CA certificate")
 	}
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{clientCert},
@@ -82,17 +92,17 @@ func TestEndToEnd(t *testing.T) {
 			TLSClientConfig: tlsConfig,
 		},
 	}
-	if err := waitForService(PLMNASBIFQDN, 10); err != nil {
-		t.Fatalf("Failed to connect to SEPP in PLMN A: %v", err)
-	}
-	address := PLMNASBIFQDN
-	resp, err := client.Get(address)
-	if err != nil {
-		t.Fatalf("Failed to make request: %v", err)
-	}
-	defer resp.Body.Close()
+	return client, nil
+}
 
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Unexpected status code: got %v want %v", resp.StatusCode, http.StatusOK)
+func TestEndToEnd(t *testing.T) {
+	Setup(PLMNASEPPHostname, PLMNBSEPPHostname, DockerNetworkName)
+	defer Cleanup(PLMNASEPPHostname, PLMNBSEPPHostname, DockerNetworkName)
+	client, err := getClient(PLMNACertsPath + "ca.crt")
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+	if err := waitForService(client, PLMNASBIFQDN, 10); err != nil {
+		t.Fatalf("Failed to connect to SEPP in PLMN A: %v", err)
 	}
 }

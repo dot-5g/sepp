@@ -19,7 +19,6 @@ func RunContainer(containerName, networkName, imageName, configPath, certsPath s
 
 	ctx := context.Background()
 
-	// Setup port bindings and exposed ports
 	portBindings := nat.PortMap{}
 	exposedPorts := nat.PortSet{}
 	for containerPort, hostPort := range ports {
@@ -31,10 +30,9 @@ func RunContainer(containerName, networkName, imageName, configPath, certsPath s
 		exposedPorts[port] = struct{}{}
 	}
 
-	// Include ExposedPorts in the container configuration
 	contConfig := &container.Config{
 		Image:        imageName,
-		ExposedPorts: exposedPorts, // Explicitly declare exposed ports
+		ExposedPorts: exposedPorts,
 	}
 
 	hostConfig := &container.HostConfig{
@@ -51,7 +49,7 @@ func RunContainer(containerName, networkName, imageName, configPath, certsPath s
 		return fmt.Errorf("failed to create container: %v", err)
 	}
 
-	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
 		return fmt.Errorf("failed to start container: %v", err)
 	}
 
