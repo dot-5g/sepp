@@ -18,6 +18,7 @@ const PLMNASBIFQDN = "https://0.0.0.0:1232"
 const PLMNASEPPHostname = "sepp-plmn-a"
 const PLMNBSEPPHostname = "sepp-plmn-b"
 const DockerNetworkName = "n32"
+const DockerImageName = "sepp-rock:test"
 
 func Setup(projectPath string, seppAHostname string, seppBHostname string, dockerNetworkName string) {
 	var err error
@@ -30,10 +31,10 @@ func Setup(projectPath string, seppAHostname string, seppBHostname string, docke
 	if err := docker.CreateNetwork(dockerNetworkName); err != nil {
 		log.Fatalf("Failed to create Docker network: %v", err)
 	}
-	if err = docker.RunContainer(seppAHostname, dockerNetworkName, "sepp:0.1", PLMNAConfigPath, PLMNACertsPath, map[string]string{"1231": "1231", "1232": "1232"}); err != nil {
+	if err = docker.RunContainer(seppAHostname, dockerNetworkName, DockerImageName, PLMNAConfigPath, PLMNACertsPath, map[string]string{"1231": "1231", "1232": "1232"}); err != nil {
 		log.Fatalf("Failed to run PLMN A container: %v", err)
 	}
-	if err = docker.RunContainer(seppBHostname, dockerNetworkName, "sepp:0.1", PLMNBConfigPath, PLMNBCertsPath, map[string]string{"1233": "1233", "1234": "1234"}); err != nil {
+	if err = docker.RunContainer(seppBHostname, dockerNetworkName, DockerImageName, PLMNBConfigPath, PLMNBCertsPath, map[string]string{"1233": "1233", "1234": "1234"}); err != nil {
 		log.Fatalf("Failed to run PLMN B container: %v", err)
 	}
 }
